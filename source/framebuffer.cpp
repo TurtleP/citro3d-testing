@@ -35,7 +35,7 @@ void Framebuffer::Create(int screen)
 
 void Framebuffer::SetSize(int width, int height, gfxScreen_t screen, gfx3dSide_t side)
 {
-    this->target = C3D_RenderTargetCreate(width, height, GPU_RB_RGBA8, GPU_RB_DEPTH16);
+    this->target = C3D_RenderTargetCreate(height, width, GPU_RB_RGBA8, GPU_RB_DEPTH16);
 
     if (this->target)
         C3D_RenderTargetSetOutput(this->target, screen, side, Framebuffer::DISPLAY_FLAGS);

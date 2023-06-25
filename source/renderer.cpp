@@ -6,7 +6,7 @@ using namespace love;
 Renderer::Renderer() : inFrame(false)
 {
     gfxInitDefault();
-    gfxSet3D(true);
+    gfxSet3D(false);
 
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 

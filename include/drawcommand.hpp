@@ -5,7 +5,6 @@
 #include "buffer.hpp"
 #include "color.hpp"
 #include "exception.hpp"
-#include "logfile.hpp"
 #include "vertex.hpp"
 
 namespace love
@@ -28,8 +27,6 @@ namespace love
             {
                 throw love::Exception("Out of memory.");
             }
-
-            LOG("%zu", this->size);
         }
 
         const std::unique_ptr<Vector2[]>& Positions() const
