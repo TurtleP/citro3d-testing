@@ -30,6 +30,8 @@ enum ArcMode
     ARC_PIE
 };
 
+static int first = 0;
+
 static void polyFill(std::span<love::Vector2> points, const Color& color,
                      bool skipLastVertex = true)
 {
@@ -39,7 +41,7 @@ static void polyFill(std::span<love::Vector2> points, const Color& color,
     defaultMatrix.TransformXY(command.Positions().get(), points.data(), count);
     command.FillVertices(color);
 
-    C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, count);
+    love::Renderer::Instance().Render(command);
 }
 
 static void drawRectangle(float x, float y, float width, float height, const Color& color)
@@ -256,7 +258,7 @@ int main(int argc, char** argv)
     for (size_t index = 0; index < love::Shader::STANDARD_MAX_ENUM; index++)
         love::Shader::defaults[index] = new love::Shader();
 
-    const auto clearColor = Color { 0, 0, 0, 1 };
+    const auto clearColor = Color { 0, 1, 0, 1 };
 
     C3D_AttrInfo* attributes = C3D_GetAttrInfo();
     AttrInfo_Init(attributes);
@@ -265,7 +267,7 @@ int main(int argc, char** argv)
     AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
     AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
 
-    const Color pacmanColor { 1.0f, 1.0f, 0, 1 };
+    const Color pacmanColor { 1.0f, 0, 0, 1 };
 
     while (aptMainLoop())
     {
@@ -274,14 +276,18 @@ int main(int argc, char** argv)
         if (hidKeysDown() & KEY_START)
             break;
 
+        defaultMatrix.SetIdentity();
+
         /* render top screen */
-        love::Shader::defaults[love::Shader::STANDARD_DEFAULT]->Attach();
 
         love::Renderer::Instance().BindFramebuffer();
         love::Renderer::Instance().Clear(clearColor);
 
-        // drawArc(DRAW_FILL, ARC_PIE, 200, 120, 15, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
-        drawCircle(DRAW_FILL, 200, 120, 30, 8, pacmanColor);
+        drawArc(DRAW_FILL, ARC_PIE, 200, 120, 10, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
+        drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
+        // drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);
+        // drawCircle(DRAW_FILL, 100, 60, 15, 16, pacmanColor);
+        // drawCircle(DRAW_FILL, 300, 60, 15, 16, pacmanColor);
 
         /* render bottom screen */
         love::Renderer::Instance().BindFramebuffer(2);

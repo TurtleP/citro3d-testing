@@ -8,7 +8,7 @@ Renderer::Renderer() : inFrame(false)
     gfxInitDefault();
     gfxSet3D(false);
 
-    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
+    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 2);
 
     for (uint8_t index = 0; index < this->framebuffers.size(); index++)
         framebuffers[index].Create(index);
@@ -48,5 +48,21 @@ void Renderer::Present()
     {
         C3D_FrameEnd(0);
         this->inFrame = false;
+
+        this->commands.clear();
     }
+}
+
+bool Renderer::Render(DrawCommand& command)
+{
+    love::Shader::defaults[love::Shader::STANDARD_DEFAULT]->Attach();
+
+    if (!command.buffer->IsValid())
+        return false;
+
+    C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
+
+    this->commands.push_back(command.buffer);
+
+    return true;
 }

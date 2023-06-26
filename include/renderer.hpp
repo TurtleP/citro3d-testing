@@ -1,8 +1,11 @@
 #pragma once
 
 #include <array>
+#include <memory>
+#include <vector>
 
 #include "color.hpp"
+#include "drawcommand.hpp"
 #include "framebuffer.hpp"
 
 namespace love
@@ -29,10 +32,14 @@ namespace love
 
         void Present();
 
+        bool Render(DrawCommand& command);
+
       private:
         std::array<Framebuffer, 0x03> framebuffers;
         Framebuffer* current;
 
         bool inFrame;
+
+        std::vector<std::shared_ptr<DrawBuffer>> commands;
     };
 } // namespace love

@@ -11,6 +11,9 @@ namespace love
 {
     struct DrawCommand
     {
+        static inline float depth        = 0.0f;
+        static constexpr float MIN_DEPTH = 1.0f / 16384.0f;
+
       public:
         DrawCommand(int vertexCount) :
             positions {},
@@ -42,6 +45,7 @@ namespace love
         void FillVertices(const Color& color)
         {
             this->buffer = std::make_shared<DrawBuffer>(this->size);
+            // float newDepth = depth + MIN_DEPTH;
 
             for (size_t index = 0; index < this->count; index++)
             {
@@ -55,10 +59,10 @@ namespace love
                 // clang-format on
             }
 
+            // DrawCommand::depth += MIN_DEPTH;
             this->buffer->Upload(this->vertices.get(), this->size);
         }
 
-      private:
         std::unique_ptr<Vector2[]> positions;
         std::unique_ptr<vertex::Vertex[]> vertices;
 
