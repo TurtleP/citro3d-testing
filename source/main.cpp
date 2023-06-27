@@ -290,8 +290,8 @@ int main(int argc, char** argv)
         // drawCircle(DRAW_FILL, 300, 60, 15, 16, pacmanColor);
 
         /* render bottom screen */
-        love::Renderer::Instance().BindFramebuffer(2);
-        love::Renderer::Instance().Clear(clearColor);
+        // love::Renderer::Instance().BindFramebuffer(2);
+        // love::Renderer::Instance().Clear(clearColor);
 
         love::Renderer::Instance().Present();
     }

@@ -58,8 +58,10 @@ namespace love
                 };
                 // clang-format on
             }
+        }
 
-            // DrawCommand::depth += MIN_DEPTH;
+        void Bind()
+        {
             this->buffer->Upload(this->vertices.get(), this->size);
         }
 

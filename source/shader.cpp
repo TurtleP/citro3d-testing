@@ -2,6 +2,7 @@
 #include <string>
 
 #include "logfile.hpp"
+#include "renderer.hpp"
 #include "shader.hpp"
 
 using namespace love;
@@ -82,7 +83,8 @@ void Shader::Attach()
     if (Shader::current != this)
     {
         C3D_BindProgram(&this->program);
-        LOG("Shader bound!");
         Shader::current = this;
+
+        Renderer::Instance().GetCurrent()->UpdateProjection(Shader::current->GetUniformLocations());
     }
 }

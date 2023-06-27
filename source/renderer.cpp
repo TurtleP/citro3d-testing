@@ -32,9 +32,6 @@ void Renderer::BindFramebuffer(size_t index)
 
     this->current = &this->framebuffers[index];
     C3D_FrameDrawOn(this->current->GetTarget());
-
-    if (Shader::current != nullptr)
-        this->current->UpdateProjection(Shader::current->GetUniformLocations());
 }
 
 void Renderer::Clear(const Color& color)
@@ -55,7 +52,10 @@ void Renderer::Present()
 
 bool Renderer::Render(DrawCommand& command)
 {
+
     love::Shader::defaults[love::Shader::STANDARD_DEFAULT]->Attach();
+
+    command.Bind();
 
     if (!command.buffer->IsValid())
         return false;
