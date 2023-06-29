@@ -29,6 +29,10 @@ void Renderer::BindFramebuffer(size_t index)
     if (!this->inFrame)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+        LOG("Clearing lifetimes..");
+        this->commands.clear();
+
         this->inFrame = true;
     }
 
@@ -47,9 +51,6 @@ void Renderer::Present()
     {
         C3D_FrameEnd(0);
         this->inFrame = false;
-
-        LOG("Clearing lifetimes..");
-        this->commands.clear();
     }
 }
 
@@ -60,9 +61,11 @@ bool Renderer::Render(DrawCommand& command)
     if (!command.buffer->IsValid())
         return false;
 
+    LOG("Setting BufInfo");
     command.buffer->SetBufInfo();
-
+    LOG("DrawArrays");
     C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
+    LOG("Preserving lifetime..");
     this->commands.push_back(command.buffer);
 
     return true;

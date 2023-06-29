@@ -284,7 +284,7 @@ int main(int argc, char** argv)
         love::Renderer::Instance().Clear(clearColor);
 
         drawArc(DRAW_FILL, ARC_PIE, 200, 120, 10, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
-        drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
+        // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
         // drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);
         // drawCircle(DRAW_FILL, 100, 60, 15, 16, pacmanColor);
         // drawCircle(DRAW_FILL, 300, 60, 15, 16, pacmanColor);
@@ -298,4 +298,8 @@ int main(int argc, char** argv)
 
     for (auto* shader : love::Shader::defaults)
         delete shader;
+
+    gfxExit();
+    C3D_Fini();
+    romfsExit();
 }
