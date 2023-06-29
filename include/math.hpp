@@ -76,7 +76,7 @@ namespace love
             this->x = rect[0];
             this->y = rect[1];
             this->w = rect[2];
-            this->h = rect[4];
+            this->h = rect[3];
         }
 
         Rect(int x, int y, int width, int height) : x(x), y(y), w(width), h(height)
