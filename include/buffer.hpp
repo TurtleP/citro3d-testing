@@ -10,11 +10,30 @@ namespace love
     struct DrawBuffer
     {
       public:
-        DrawBuffer(size_t size) : info {}, data(nullptr), valid(true)
+        DrawBuffer(size_t size) : info {}, size(size), data(nullptr), valid(true)
         {
-            this->data = linearAlloc(size);
+            this->data = (vertex::Vertex*)linearAlloc(size);
+
             BufInfo_Init(&this->info);
+            if (BufInfo_Add(&this->info, (void*)this->data, vertex::VERTEX_SIZE, 3, 0x210) < 0)
+                this->valid = false;
         }
+
+        vertex::Vertex& operator*()
+        {
+            return this->data[0];
+        }
+
+        vertex::Vertex& operator[](size_t index)
+        {
+            return this->data[index];
+        }
+
+        vertex::Vertex* GetBuffer()
+        {
+            return this->data;
+        }
+
 
         ~DrawBuffer()
         {
@@ -26,18 +45,27 @@ namespace love
             return this->valid;
         }
 
+        void FlushDataCache()
+        {
+            GSPGPU_FlushDataCache((void*)this->data, this->size);
+        }
+
+        void SetBufInfo() 
+        {
+            C3D_SetBufInfo(&this->info);
+        }
+
         void Upload(vertex::Vertex* vertices, size_t size)
         {
-            std::memcpy(this->data, (void*)vertices, size);
-
-            if (BufInfo_Add(&this->info, this->data, vertex::VERTEX_SIZE, 3, 0x210) < 0)
-                this->valid = false;
+            std::memcpy(this->data, vertices, size);            
         }
 
       private:
         C3D_BufInfo info;
 
-        void* data;
+        vertex::Vertex* data;
+        size_t size;
+
         bool valid;
     };
 } // namespace love

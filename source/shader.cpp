@@ -57,19 +57,14 @@ Shader::Shader()
 {
     std::string error {};
 
-    LOG("Loading shader!");
     if (!loadShaderFile(DEFAULT_SHADER, this->binary, error))
         return;
-    LOG("Loaded shader!");
+
     shaderProgramInit(&this->program);
-    LOG("Inited Program!");
     shaderProgramSetVsh(&this->program, &this->binary->DVLE[0]);
-    LOG("Set Program Vsh!");
 
     this->uLoc_mdlView = shaderInstanceGetUniformLocation(this->program.vertexShader, "mdlvMtx");
-    LOG("uLoc_mdlView: %i", this->uLoc_mdlView)
     this->uLoc_projMtx = shaderInstanceGetUniformLocation(this->program.vertexShader, "projMtx");
-    LOG("uLoc_projMtx: %i", this->uLoc_projMtx)
 }
 
 Shader::~Shader()
@@ -82,9 +77,11 @@ void Shader::Attach()
 {
     if (Shader::current != this)
     {
+        LOG("Binding shader!");
         C3D_BindProgram(&this->program);
+        LOG("Updating projection!");
+        Renderer::Instance().GetCurrent()->UpdateProjection(this->GetUniformLocations());
+        LOG("Done!");
         Shader::current = this;
-
-        Renderer::Instance().GetCurrent()->UpdateProjection(Shader::current->GetUniformLocations());
     }
 }

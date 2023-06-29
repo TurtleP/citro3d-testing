@@ -1,6 +1,8 @@
 #include "renderer.hpp"
 #include "shader.hpp"
 
+#include "logfile.hpp"
+
 using namespace love;
 
 Renderer::Renderer() : inFrame(false)
@@ -46,22 +48,21 @@ void Renderer::Present()
         C3D_FrameEnd(0);
         this->inFrame = false;
 
+        LOG("Clearing lifetimes..");
         this->commands.clear();
     }
 }
 
 bool Renderer::Render(DrawCommand& command)
 {
-
     love::Shader::defaults[love::Shader::STANDARD_DEFAULT]->Attach();
-
-    command.Bind();
 
     if (!command.buffer->IsValid())
         return false;
 
-    C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
+    command.buffer->SetBufInfo();
 
+    C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
     this->commands.push_back(command.buffer);
 
     return true;
