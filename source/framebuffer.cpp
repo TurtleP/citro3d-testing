@@ -6,10 +6,7 @@ Framebuffer::Framebuffer() : target(nullptr), width(0), height(0), viewport {}, 
 {}
 
 Framebuffer::~Framebuffer()
-{
-    if (this->target)
-        C3D_RenderTargetDelete(this->target);
-}
+{}
 
 void Framebuffer::Create(int screen)
 {
@@ -47,22 +44,31 @@ void Framebuffer::SetSize(int width, int height, gfxScreen_t screen, gfx3dSide_t
     this->SetScissor();
 }
 
+static const Rect calculateBounds(const Rect& bounds)
+{
+    const uint32_t left   = this->height > (bounds.y + bounds.h) ? this->height - (bounds.y + bounds.h) : 0;
+    const uint32_t top    = this->width  > (bounds.x + bounds.w) ? this->width  - (bounds.x + bounds.w) : 0;
+    const uint32_t right  = this->height - bounds.y;
+    const uint32_t bottom = this->width  - bounds.x;
+
+    return { left, top, right, bottom };
+}
+
 void Framebuffer::SetViewport(const Rect& viewport)
 {
-    Rect newViewport = viewport;
-    if (viewport == Rect::EMPTY)
-        newViewport = this->viewport;
+    // const auto new viewPort = calculateBounds(viewport);
+    // C3D_SetViewport(newViewport.x, newViewport.y, newViewport.w, newViewport.h);
 
-    C3D_SetViewport(newViewport.x, newViewport.y, newViewport.w, newViewport.h);
     Mtx_OrthoTilt(&this->projView, 0, newViewport.w, newViewport.h, 0, -10, 10, false);
 }
 
 void Framebuffer::SetScissor(const Rect& scissor)
 {
-    if (viewport == Rect::EMPTY)
-        C3D_SetScissor(GPU_SCISSOR_DISABLE, 0, 0, this->scissor.w, this->scissor.h);
-    else
-        C3D_SetScissor(GPU_SCISSOR_DISABLE, scissor.x, scissor.y, scissor.w, scissor.h);
+    const bool enable = (scissor != Rect::EMPTY);
+    GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
+
+    auto newScissor = calculateBounds(scissor);
+    C3D_SetScissor(mode, newScissor.x, newScissor.y, newScissor.w, newScissor.h);
 }
 
 void Framebuffer::UpdateProjection(std::pair<int8_t, int8_t> locations)

@@ -22,6 +22,19 @@ Renderer::Renderer() : inFrame(false)
     C3D_TexEnvInit(env);
     C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
     C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+
+    C3D_AttrInfo* attributes = C3D_GetAttrInfo();
+    AttrInfo_Init(attributes);
+
+    AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3); // position
+    AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
+    AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
+}
+
+Renderer::~Renderer()
+{
+    C3D_Fini();
+    gfxExit();
 }
 
 void Renderer::BindFramebuffer(size_t index)

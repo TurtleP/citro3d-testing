@@ -259,14 +259,6 @@ int main(int argc, char** argv)
         love::Shader::defaults[index] = new love::Shader();
 
     const auto clearColor = Color { 0, 1, 0, 1 };
-
-    C3D_AttrInfo* attributes = C3D_GetAttrInfo();
-    AttrInfo_Init(attributes);
-
-    AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3); // position
-    AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
-    AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
-
     const Color pacmanColor { 1.0f, 0, 0, 1 };
 
     while (aptMainLoop())
@@ -296,10 +288,5 @@ int main(int argc, char** argv)
         love::Renderer::Instance().Present();
     }
 
-    for (auto* shader : love::Shader::defaults)
-        delete shader;
-
-    gfxExit();
-    C3D_Fini();
     romfsExit();
 }

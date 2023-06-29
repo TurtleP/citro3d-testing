@@ -15,6 +15,8 @@ namespace love
       public:
         Renderer();
 
+        ~Renderer();
+
         static Renderer& Instance()
         {
             static Renderer renderer;

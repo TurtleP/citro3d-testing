@@ -69,6 +69,15 @@ Shader::Shader()
 
 Shader::~Shader()
 {
+    for (int i = 0; i < STANDARD_MAX_ENUM; i++)
+    {
+        if (this == Shader::defaults[i])
+            Shader::defaults[i] = nullptr;
+    }
+
+    if (Shader::current == this)
+        Shader::AttachDefault(STANDARD_DEFAULT);
+
     shaderProgramFree(&this->program);
     DVLB_Free(this->binary);
 }
@@ -84,4 +93,18 @@ void Shader::Attach()
         LOG("Done!");
         Shader::current = this;
     }
+}
+
+void Shader::AttachDefault(StandardShader type)
+{
+    Shader* defaultShader = Shader::defaults[type];
+
+    if (defaultShader == nullptr)
+    {
+        current = nullptr;
+        return;
+    }
+
+    if (current != defaultShader)
+        defaultShader->Attach();
 }

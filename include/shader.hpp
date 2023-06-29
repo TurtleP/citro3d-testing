@@ -25,6 +25,8 @@ namespace love
 
         void Attach();
 
+        void AttachDefault(StandardShader type);
+
         std::pair<int8_t, int8_t> GetUniformLocations()
         {
             return std::make_pair(this->uLoc_projMtx, this->uLoc_mdlView);

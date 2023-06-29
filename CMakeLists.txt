@@ -11,7 +11,7 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 dkp_add_asset_target(${PROJECT_NAME}_ctr_romfs romfs)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(APP_TITLE "LÖVE Potion (${COMMIT_HASH})")
+    set(APP_TITLE "citro3d_testing (${COMMIT_HASH})")
     target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=1)
 else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=0)

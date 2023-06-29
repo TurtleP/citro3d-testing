@@ -10,7 +10,7 @@ namespace love
     struct DrawBuffer
     {
       public:
-        DrawBuffer(size_t size) : info {}, size(size), data(nullptr), valid(true)
+        DrawBuffer(size_t size) : info {}, data(nullptr), size(size), valid(true)
         {
             this->data = (vertex::Vertex*)linearAlloc(size);
 
@@ -19,25 +19,21 @@ namespace love
                 this->valid = false;
         }
 
-        vertex::Vertex& operator*()
-        {
-            return this->data[0];
-        }
-
-        vertex::Vertex& operator[](size_t index)
-        {
-            return this->data[index];
-        }
-
         vertex::Vertex* GetBuffer()
         {
             return this->data;
         }
 
+        DrawBuffer(DrawBuffer&&) = delete;
+
+        DrawBuffer(const DrawBuffer&) = delete;
+
+        DrawBuffer& operator=(const DrawBuffer&) = delete;
 
         ~DrawBuffer()
         {
-            linearFree(this->data);
+            if (this->data != nullptr)
+                linearFree(this->data);
         }
 
         bool IsValid()
@@ -53,11 +49,6 @@ namespace love
         void SetBufInfo() 
         {
             C3D_SetBufInfo(&this->info);
-        }
-
-        void Upload(vertex::Vertex* vertices, size_t size)
-        {
-            std::memcpy(this->data, vertices, size);            
         }
 
       private:
