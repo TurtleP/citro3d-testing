@@ -38,7 +38,7 @@ static bool loadShaderFile(const char* filepath, DVLB_s*& program, std::string& 
         return false;
     }
 
-    uint32_t readSize = (uint32_t)std::fread(data.get(), 1, size, file);
+    long readSize = (long)std::fread(data.get(), 1, size, file);
 
     if (readSize != size)
     {

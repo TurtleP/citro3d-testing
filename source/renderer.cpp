@@ -40,20 +40,15 @@ void Renderer::BindFramebuffer(size_t index)
     if (!this->inFrame)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-        this->commands.clear();
-
         this->inFrame = true;
     }
 
     this->current = &this->framebuffers[index];
-
-    this->current->SetViewport();
     C3D_FrameDrawOn(this->current->GetTarget());
 }
 
 void Renderer::Clear(const Color& color)
 {
-    C3D_FrameSplit(0);
     C3D_RenderTargetClear(this->current->GetTarget(), C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
@@ -62,6 +57,8 @@ void Renderer::Present()
     if (this->inFrame)
     {
         C3D_FrameEnd(0);
+
+        this->commands.clear();
         this->inFrame = false;
     }
 }

@@ -30,8 +30,6 @@ enum ArcMode
     ARC_PIE
 };
 
-static int first = 0;
-
 static void polyFill(std::span<love::Vector2> points, const Color& color,
                      bool skipLastVertex = true)
 {
@@ -261,12 +259,18 @@ int main(int argc, char** argv)
     const auto clearColor = Color { 0, 1, 0, 1 };
     const Color pacmanColor { 1.0f, 0, 0, 1 };
 
+    consoleInit(GFX_BOTTOM, NULL);
+
     while (aptMainLoop())
     {
         hidScanInput();
 
         if (hidKeysDown() & KEY_START)
             break;
+
+        printf("\x1b[1;1HCPU:     %6.2f%%\x1b[K", C3D_GetProcessingTime() * 6.0f);
+        printf("\x1b[2;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime() * 6.0f);
+        printf("\x1b[3;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage() * 100.0f);
 
         defaultMatrix.SetIdentity();
 

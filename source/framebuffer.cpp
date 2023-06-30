@@ -46,28 +46,37 @@ void Framebuffer::SetSize(int width, int height, gfxScreen_t screen, gfx3dSide_t
 
 const Rect Framebuffer::CalculateBounds(const Rect& bounds)
 {
+    // clang-format off
     const uint32_t left   = this->height > (bounds.y + bounds.h) ? this->height - (bounds.y + bounds.h) : 0;
-    const uint32_t top    = this->width  > (bounds.x + bounds.w) ? this->width  - (bounds.x + bounds.w) : 0;
+    const uint32_t top    = this->width  > (bounds.x + bounds.w) ? this->width - (bounds.x + bounds.w) : 0;
     const uint32_t right  = this->height - bounds.y;
     const uint32_t bottom = this->width  - bounds.x;
+    // clang-format on
 
-    return { left, top, right, bottom };
+    return { (int)left, (int)top, (int)right, (int)bottom };
 }
 
 void Framebuffer::SetViewport(const Rect& viewport)
 {
+    Rect newViewport = this->CalculateBounds(viewport);
+    if (viewport == Rect::EMPTY)
+        newViewport = this->CalculateBounds(this->viewport);
+
     // const auto new viewPort = calculateBounds(viewport);
     // C3D_SetViewport(newViewport.x, newViewport.y, newViewport.w, newViewport.h);
-
-    Mtx_OrthoTilt(&this->projView, 0, viewport.w, viewport.h, 0, -10, 10, false);
+    Mtx_Ortho(&this->projView, newViewport.x, newViewport.w, newViewport.h, newViewport.y, -10, 10,
+              true);
 }
 
 void Framebuffer::SetScissor(const Rect& scissor)
 {
-    const bool enable = (scissor != Rect::EMPTY);
+    const bool enable    = (scissor != Rect::EMPTY);
     GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
 
-    auto newScissor = this->CalculateBounds(scissor);
+    Rect newScissor = this->CalculateBounds(scissor);
+    if (viewport == Rect::EMPTY)
+        newScissor = this->CalculateBounds(this->scissor);
+
     C3D_SetScissor(mode, newScissor.x, newScissor.y, newScissor.w, newScissor.h);
 }
 
