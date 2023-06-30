@@ -8,8 +8,6 @@ using namespace love;
 Renderer::Renderer() : inFrame(false)
 {
     gfxInitDefault();
-    gfxSet3D(false);
-
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 2);
 
     for (uint8_t index = 0; index < this->framebuffers.size(); index++)
@@ -28,7 +26,7 @@ Renderer::Renderer() : inFrame(false)
 
     AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3); // position
     AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
-    AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
+    AttrInfo_AddLoader(attributes, 2, GPU_SHORT, 2); // texcoord
 }
 
 Renderer::~Renderer()
@@ -42,19 +40,20 @@ void Renderer::BindFramebuffer(size_t index)
     if (!this->inFrame)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-
-        LOG("Clearing lifetimes..");
         this->commands.clear();
 
         this->inFrame = true;
     }
 
     this->current = &this->framebuffers[index];
+
+    this->current->SetViewport();
     C3D_FrameDrawOn(this->current->GetTarget());
 }
 
 void Renderer::Clear(const Color& color)
 {
+    C3D_FrameSplit(0);
     C3D_RenderTargetClear(this->current->GetTarget(), C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
@@ -74,11 +73,11 @@ bool Renderer::Render(DrawCommand& command)
     if (!command.buffer->IsValid())
         return false;
 
-    LOG("Setting BufInfo");
+    this->current->UpdateProjection(Shader::current->GetUniformLocations());
+
     command.buffer->SetBufInfo();
-    LOG("DrawArrays");
     C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
-    LOG("Preserving lifetime..");
+
     this->commands.push_back(command.buffer);
 
     return true;

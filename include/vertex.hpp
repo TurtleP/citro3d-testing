@@ -22,7 +22,7 @@ namespace vertex
 
     static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
 
-    static std::array<uint16_t, 2> Normalize(const love::Vector2& in)
+    static inline std::array<uint16_t, 2> Normalize(const love::Vector2& in)
     {
         return { normto16t(in.x), normto16t(in.y) };
     }

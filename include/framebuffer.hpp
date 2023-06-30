@@ -67,6 +67,8 @@ namespace love
 
         void SetSize(int width, int height, gfxScreen_t screen, gfx3dSide_t side);
 
+        const Rect CalculateBounds(const Rect& rect);
+
         C3D_RenderTarget* target;
 
         C3D_Mtx modelView;

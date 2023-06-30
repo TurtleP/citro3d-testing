@@ -86,11 +86,7 @@ void Shader::Attach()
 {
     if (Shader::current != this)
     {
-        LOG("Binding shader!");
         C3D_BindProgram(&this->program);
-        LOG("Updating projection!");
-        Renderer::Instance().GetCurrent()->UpdateProjection(this->GetUniformLocations());
-        LOG("Done!");
         Shader::current = this;
     }
 }
