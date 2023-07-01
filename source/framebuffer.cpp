@@ -30,6 +30,14 @@ void Framebuffer::Create(int screen)
     }
 }
 
+void Framebuffer::Destroy()
+{
+    if (this->target)
+        C3D_RenderTargetDelete(this->target);
+
+    this->target = nullptr;
+}
+
 void Framebuffer::SetSize(int width, int height, gfxScreen_t screen, gfx3dSide_t side)
 {
     this->target = C3D_RenderTargetCreate(height, width, GPU_RB_RGBA8, GPU_RB_DEPTH16);
@@ -58,14 +66,14 @@ const Rect Framebuffer::CalculateBounds(const Rect& bounds)
 
 void Framebuffer::SetViewport(const Rect& viewport)
 {
-    Rect newViewport = this->CalculateBounds(viewport);
+    Rect newViewport = viewport;
     if (viewport == Rect::EMPTY)
-        newViewport = this->CalculateBounds(this->viewport);
+        newViewport = this->viewport;
 
     // const auto new viewPort = calculateBounds(viewport);
     // C3D_SetViewport(newViewport.x, newViewport.y, newViewport.w, newViewport.h);
-    Mtx_Ortho(&this->projView, newViewport.x, newViewport.w, newViewport.h, newViewport.y, -10, 10,
-              true);
+    Mtx_OrthoTilt(&this->projView, newViewport.x, newViewport.w, newViewport.h, newViewport.y, -10,
+                  10, true);
 }
 
 void Framebuffer::SetScissor(const Rect& scissor)

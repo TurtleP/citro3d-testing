@@ -14,8 +14,7 @@
 #include <array>
 #include <cmath>
 #include <span>
-
-static love::Matrix4 defaultMatrix;
+#include <vector>
 
 enum DrawMode
 {
@@ -30,13 +29,20 @@ enum ArcMode
     ARC_PIE
 };
 
+static std::vector<love::Matrix4> transformStack;
+
 static void polyFill(std::span<love::Vector2> points, const Color& color,
                      bool skipLastVertex = true)
 {
-    const int count = points.size() - (skipLastVertex ? 1 : 0);
+    const auto transform = transformStack.back();
+    bool is2D            = transform.IsAffine2DTransform();
 
+    const int count = points.size() - (skipLastVertex ? 1 : 0);
     love::DrawCommand command(count);
-    defaultMatrix.TransformXY(command.Positions().get(), points.data(), count);
+
+    if (is2D)
+        transform.TransformXY(command.Positions().get(), points.data(), command.count);
+
     command.FillVertices(color);
 
     love::Renderer::Instance().Render(command);
@@ -256,10 +262,15 @@ int main(int argc, char** argv)
     for (size_t index = 0; index < love::Shader::STANDARD_MAX_ENUM; index++)
         love::Shader::defaults[index] = new love::Shader();
 
-    const auto clearColor = Color { 0, 1, 0, 1 };
-    const Color pacmanColor { 1.0f, 0, 0, 1 };
+    const auto clearColor  = Color { 0, 1, 0, 1 };
+    const auto pacmanColor = Color { 1, 0, 0, 1 };
 
     consoleInit(GFX_BOTTOM, NULL);
+
+    const auto pacmanMouth = M_TAU / 12;
+
+    transformStack.reserve(0x10);
+    transformStack.push_back(love::Matrix4 {});
 
     while (aptMainLoop())
     {
@@ -272,14 +283,14 @@ int main(int argc, char** argv)
         printf("\x1b[2;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime() * 6.0f);
         printf("\x1b[3;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage() * 100.0f);
 
-        defaultMatrix.SetIdentity();
+        transformStack.back().SetIdentity();
 
         /* render top screen */
 
         love::Renderer::Instance().BindFramebuffer();
         love::Renderer::Instance().Clear(clearColor);
 
-        drawArc(DRAW_FILL, ARC_PIE, 200, 120, 10, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
+        drawArc(DRAW_FILL, ARC_PIE, 200, 120, 10, pacmanMouth, M_TAU - pacmanMouth, pacmanColor);
         // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
         // drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);
         // drawCircle(DRAW_FILL, 100, 60, 15, 16, pacmanColor);

@@ -17,6 +17,8 @@ namespace love
 
         void Create(int id);
 
+        void Destroy();
+
         int GetWidth() const
         {
             return this->width;

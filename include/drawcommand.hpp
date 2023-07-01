@@ -37,7 +37,7 @@ namespace love
 
         void FillVertices(const Color& color)
         {
-            this->buffer = std::make_shared<DrawBuffer>(this->size);
+            this->buffer  = std::make_shared<DrawBuffer>(this->size);
             auto vertices = this->buffer->GetBuffer();
 
             for (size_t index = 0; index < this->count; index++)

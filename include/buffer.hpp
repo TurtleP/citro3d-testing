@@ -15,7 +15,10 @@ namespace love
             this->data = (vertex::Vertex*)linearAlloc(size);
 
             BufInfo_Init(&this->info);
-            if (BufInfo_Add(&this->info, (void*)this->data, vertex::VERTEX_SIZE, 3, 0x210) < 0)
+
+            int result = BufInfo_Add(&this->info, (void*)this->data, vertex::VERTEX_SIZE, 3, 0x210);
+
+            if (result < 0)
                 this->valid = false;
         }
 
@@ -43,19 +46,19 @@ namespace love
 
         void FlushDataCache()
         {
-            GSPGPU_FlushDataCache((void*)this->data, this->size);
-        }
+            Result result = GSPGPU_FlushDataCache((void*)this->data, this->size);
 
-        void SetBufInfo() 
-        {
-            C3D_SetBufInfo(&this->info);
+            if (R_FAILED(result))
+                this->valid = false;
+            else
+                C3D_SetBufInfo(&this->info);
         }
 
       private:
         C3D_BufInfo info;
 
         vertex::Vertex* data;
-        size_t size;
+        uint32_t size;
 
         bool valid;
     };

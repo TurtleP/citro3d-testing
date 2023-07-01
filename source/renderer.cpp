@@ -40,6 +40,8 @@ void Renderer::BindFramebuffer(size_t index)
     if (!this->inFrame)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+        this->commands.clear();
         this->inFrame = true;
     }
 
@@ -57,8 +59,6 @@ void Renderer::Present()
     if (this->inFrame)
     {
         C3D_FrameEnd(0);
-
-        this->commands.clear();
         this->inFrame = false;
     }
 }
@@ -72,7 +72,6 @@ bool Renderer::Render(DrawCommand& command)
 
     this->current->UpdateProjection(Shader::current->GetUniformLocations());
 
-    command.buffer->SetBufInfo();
     C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
 
     this->commands.push_back(command.buffer);
