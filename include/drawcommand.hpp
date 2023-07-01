@@ -54,9 +54,6 @@ namespace love
                 // clang-format on
             }
 
-            if (this->texture)
-                C3D_TexBind(0, this->texture->GetTexture());
-
             this->buffer->FlushDataCache();
         }
 
@@ -76,6 +73,9 @@ namespace love
                 };
                 // clang-format on
             }
+
+            C3D_TexBind(0, this->texture->GetTexture());
+            this->buffer->FlushDataCache();
         }
 
         vertex::TriangleIndexMode mode;
