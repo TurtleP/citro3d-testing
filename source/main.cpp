@@ -15,7 +15,9 @@
 
 #include <array>
 #include <cmath>
+#include <limits.h>
 #include <span>
+#include <unistd.h>
 #include <vector>
 
 int main(int argc, char** argv)
@@ -36,7 +38,16 @@ int main(int argc, char** argv)
 
     const auto pacmanMouth = M_TAU / 12;
 
-    auto* texture              = new love::Texture("dio.t3x");
+    char cwd_tmp[PATH_MAX] {};
+    std::string cwd {};
+
+    if (getcwd(cwd_tmp, PATH_MAX))
+        cwd = cwd_tmp;
+
+    LOG("%s", cwd.c_str());
+
+    std::string filepath       = cwd + "/dio.t3x";
+    auto* texture              = new love::Texture(filepath);
     const auto texturePosition = love::Matrix4(0, 0, 0, 1, 1, 0, 0, 0, 0);
 
     while (aptMainLoop())

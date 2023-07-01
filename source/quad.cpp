@@ -25,9 +25,9 @@ void Quad::Refresh(const Viewport& viewport, double sourceWidth, double sourceHe
     std::fill_n(this->textureCoords, 4, Vector2 {});
 
     // clang-format off
-    this->vertices[0] = Vector2((float)(viewport.x / sourceWidth), (float)(viewport.y / sourceHeight));
-    this->vertices[1] = Vector2((float)(viewport.x / sourceWidth), (float)((viewport.y + viewport.h) / sourceHeight));
-    this->vertices[2] = Vector2((float)((viewport.x + viewport.w) / sourceWidth), (float)((viewport.y + viewport.h) / sourceHeight));
-    this->vertices[3] = Vector2((float)((viewport.x + viewport.w) / sourceWidth), (float)(viewport.y / sourceHeight));
+    this->textureCoords[0] = Vector2((float)(viewport.x / sourceWidth), 1.0f - (float)(viewport.y / sourceHeight));
+    this->textureCoords[1] = Vector2((float)(viewport.x / sourceWidth), 1.0f - (float)((viewport.y + viewport.h) / sourceHeight));
+    this->textureCoords[2] = Vector2((float)((viewport.x + viewport.w) / sourceWidth), 1.0f - (float)((viewport.y + viewport.h) / sourceHeight));
+    this->textureCoords[3] = Vector2((float)((viewport.x + viewport.w) / sourceWidth), 1.0f - (float)(viewport.y / sourceHeight));
     // clang-format on
 }

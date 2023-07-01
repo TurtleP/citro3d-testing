@@ -11,7 +11,7 @@ namespace love
     class Texture
     {
       public:
-        Texture(const char* path);
+        Texture(const std::string& path);
 
         void Draw(Graphics& graphics, const Matrix4& matrix);
 
@@ -28,5 +28,7 @@ namespace love
 
         C3D_Tex* texture;
         Quad* quad;
+
+        bool valid;
     };
 } // namespace love

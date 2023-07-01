@@ -16,10 +16,25 @@ Renderer::Renderer() : inFrame(false)
     C3D_CullFace(GPU_CULL_NONE);
     C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
 
-    C3D_TexEnv* env = C3D_GetTexEnv(0);
+    C3D_TexEnv* env = nullptr;
+
+    env = C3D_GetTexEnv(0);
     C3D_TexEnvInit(env);
-    C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-    C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+    C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
+    C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
+
+    // texenv1.rgb = mix(texclr.rgb, texenv0.rgb, vtx.blend.y);
+    env = C3D_GetTexEnv(1);
+    C3D_TexEnvInit(env);
+    C3D_TexEnvSrc(env, C3D_RGB, GPU_TEXTURE0, GPU_PREVIOUS, GPU_TEXTURE3);
+    C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR,
+                    GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
+    C3D_TexEnvFunc(env, C3D_RGB, GPU_INTERPOLATE);
+
+    // env = C3D_GetTexEnv(0);
+    // C3D_TexEnvInit(env);
+    // C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
+    // C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 
     C3D_AttrInfo* attributes = C3D_GetAttrInfo();
     AttrInfo_Init(attributes);
@@ -73,6 +88,10 @@ bool Renderer::Render(DrawCommand& command)
     this->current->UpdateProjection(Shader::current->GetUniformLocations());
 
     auto mode = vertex::GetMode(command.mode);
+
+    if (command.texture)
+        C3D_TexBind(0, command.texture);
+
     C3D_DrawArrays(mode, 0, command.count);
 
     this->commands.push_back(command.buffer);

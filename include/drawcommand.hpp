@@ -74,7 +74,6 @@ namespace love
                 // clang-format on
             }
 
-            C3D_TexBind(0, this->texture->GetTexture());
             this->buffer->FlushDataCache();
         }
 
@@ -84,7 +83,7 @@ namespace love
         size_t count;
         size_t size;
 
-        Texture* texture;
+        C3D_Tex* texture;
 
         std::shared_ptr<DrawBuffer> buffer;
     };
