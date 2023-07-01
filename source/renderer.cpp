@@ -26,7 +26,7 @@ Renderer::Renderer() : inFrame(false)
 
     AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3); // position
     AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
-    AttrInfo_AddLoader(attributes, 2, GPU_SHORT, 2); // texcoord
+    AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
 }
 
 Renderer::~Renderer()
@@ -73,7 +73,7 @@ bool Renderer::Render(DrawCommand& command)
     this->current->UpdateProjection(Shader::current->GetUniformLocations());
 
     auto mode = vertex::GetMode(command.mode);
-    C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
+    C3D_DrawArrays(mode, 0, command.count);
 
     this->commands.push_back(command.buffer);
 

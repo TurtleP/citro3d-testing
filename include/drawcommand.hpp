@@ -69,7 +69,7 @@ namespace love
                 {
                     .position = { this->positions[index].x, this->positions[index].y, 0 },
                     .color    = color.array(),
-                    .texcoord = vertex::Normalize(textureCoords[index])
+                    .texcoord = { textureCoords[index].x, textureCoords[index].y }
                 };
                 // clang-format on
             }
