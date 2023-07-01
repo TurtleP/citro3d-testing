@@ -61,10 +61,13 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
 source/exception.cpp
 source/framebuffer.cpp
+source/graphics.cpp
 source/main.cpp
 source/matrix.cpp
 source/renderer.cpp
 source/shader.cpp
+source/texture.cpp
+source/quad.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE citro3d)

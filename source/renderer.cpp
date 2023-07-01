@@ -72,6 +72,7 @@ bool Renderer::Render(DrawCommand& command)
 
     this->current->UpdateProjection(Shader::current->GetUniformLocations());
 
+    auto mode = vertex::GetMode(command.mode);
     C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, command.count);
 
     this->commands.push_back(command.buffer);
