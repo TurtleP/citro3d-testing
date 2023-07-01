@@ -39,6 +39,12 @@ namespace love
 
         void FillVertices(const Color& color)
         {
+            // Plain ol' passthrough of vertex color.
+            C3D_TexEnv* env = C3D_GetTexEnv(0);
+            C3D_TexEnvInit(env);
+            C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
+            C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+
             this->buffer  = std::make_shared<DrawBuffer>(this->size);
             auto vertices = this->buffer->GetBuffer();
 
@@ -59,6 +65,11 @@ namespace love
 
         void FillVertices(const Color& color, const Vector2* textureCoords)
         {
+            C3D_TexEnv* env = C3D_GetTexEnv(0);
+            C3D_TexEnvInit(env);
+            C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
+            C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
+
             this->buffer  = std::make_shared<DrawBuffer>(this->count);
             auto vertices = this->buffer->GetBuffer();
 
