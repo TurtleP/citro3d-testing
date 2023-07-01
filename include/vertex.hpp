@@ -30,7 +30,7 @@ namespace vertex
             case TRIANGLE_FAN:
                 return GPU_TRIANGLE_FAN;
             case TRIANGLE_QUADS:
-                return GPU_TRIANGLES;
+                return GPU_TRIANGLE_FAN;
             case TRIANGLE_STRIP:
                 return GPU_TRIANGLE_STRIP;
             default:
