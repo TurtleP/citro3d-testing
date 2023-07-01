@@ -72,7 +72,8 @@ namespace love
             return this->transformStack.back();
         }
 
-        Color GetColor() {
+        Color GetColor()
+        {
             return this->state.back().foreground;
         }
 

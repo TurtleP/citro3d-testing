@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     const auto pacmanMouth = M_TAU / 12;
 
-    auto* texture              = new love::Texture("sdmc:/dio.t3x");
+    auto* texture              = new love::Texture("dio.t3x");
     const auto texturePosition = love::Matrix4(0, 0, 0, 1, 1, 0, 0, 0, 0);
 
     while (aptMainLoop())
@@ -59,8 +59,9 @@ int main(int argc, char** argv)
 
         texture->Draw(love::Graphics::Instance(), texturePosition);
 
-        love::Graphics::Instance().Arc(love::Graphics::DRAW_FILL, love::Graphics::ARC_PIE, 200, 120,
-                                       60, pacmanMouth, M_TAU - pacmanMouth, pacmanColor);
+        // love::Graphics::Instance().Arc(love::Graphics::DRAW_FILL, love::Graphics::ARC_PIE, 200,
+        // 120,
+        //                                60, pacmanMouth, M_TAU - pacmanMouth, pacmanColor);
 
         // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
         // drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);

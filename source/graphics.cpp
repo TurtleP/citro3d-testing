@@ -7,8 +7,11 @@ using namespace love;
 
 Graphics::Graphics()
 {
-    transformStack.reserve(0x10);
-    transformStack.push_back(love::Matrix4 {});
+    this->transformStack.reserve(0x10);
+    this->transformStack.push_back(love::Matrix4 {});
+
+    this->state.reserve(0x0A);
+    this->state.push_back(DisplayState {});
 }
 
 void Graphics::Polyfill(std::span<love::Vector2> points, const Color& color, bool skipLastVertex)
