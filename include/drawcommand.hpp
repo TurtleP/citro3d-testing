@@ -17,6 +17,7 @@ namespace love
 
       public:
         DrawCommand(int vertexCount, vertex::TriangleIndexMode mode = vertex::TRIANGLE_FAN) :
+            mode(mode),
             positions {},
             count(vertexCount),
             size(vertexCount * vertex::VERTEX_SIZE),

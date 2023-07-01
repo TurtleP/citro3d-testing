@@ -54,7 +54,7 @@ Texture::Texture(const std::string& path) : valid(false)
     C3D_TexSetFilter(this->texture, GPU_LINEAR, GPU_LINEAR);
 
     Quad::Viewport view { 0, 0, (double)this->width, (double)this->height };
-    this->quad = new Quad { view, NextPo2(this->width), NextPo2(this->height) };
+    this->quad = new Quad { view, this->texture->width, this->texture->height };
 }
 
 Texture::~Texture()
