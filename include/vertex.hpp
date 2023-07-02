@@ -17,6 +17,16 @@ namespace vertex
         TRIANGLE_TRIS
     };
 
+    enum PrimitiveType
+    {
+        PRIMITIVE_TRIANGLES,
+        PRIMITIVE_TRIANGLE_STRIP,
+        PRIMITIVE_TRIANGLE_FAN,
+        PRIMITIVE_QUADS,
+        PRIMITIVE_POINTS,
+        PRIMITIVE_MAX_ENUM
+    };
+
     struct Vertex
     {
         std::array<float, 3> position;
@@ -24,15 +34,15 @@ namespace vertex
         std::array<float, 2> texcoord;
     };
 
-    static inline GPU_Primitive_t GetMode(TriangleIndexMode mode)
+    static inline GPU_Primitive_t GetMode(PrimitiveType mode)
     {
         switch (mode)
         {
-            case TRIANGLE_FAN:
+            case PRIMITIVE_TRIANGLE_FAN:
                 return GPU_TRIANGLE_FAN;
-            case TRIANGLE_QUADS:
+            case PRIMITIVE_QUADS:
                 return GPU_TRIANGLE_FAN;
-            case TRIANGLE_STRIP:
+            case PRIMITIVE_TRIANGLE_STRIP:
                 return GPU_TRIANGLE_STRIP;
             default:
                 return GPU_TRIANGLES;

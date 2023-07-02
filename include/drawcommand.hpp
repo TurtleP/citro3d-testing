@@ -23,7 +23,7 @@ namespace love
             TEXENV_MODE_MAX_ENUM
         };
 
-        DrawCommand(int vertexCount, vertex::TriangleIndexMode mode = vertex::TRIANGLE_FAN) :
+        DrawCommand(int vertexCount, vertex::PrimitiveType mode = vertex::PRIMITIVE_TRIANGLE_FAN) :
             mode(mode),
             positions {},
             count(vertexCount),
@@ -68,6 +68,26 @@ namespace love
             this->buffer->FlushDataCache();
         }
 
+        void FillVertices(Color* colors)
+        {
+            this->SetTexEnv(TEXENV_MODE_PRIMITIVE);
+
+            this->buffer  = std::make_shared<DrawBuffer>(this->size);
+            auto vertices = this->buffer->GetBuffer();
+
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = colors[index].array(),
+                    .texcoord = { 0, 0 }
+                };
+                // clang-format on
+            }
+        }
+
         void FillVertices(const Color& color, const Vector2* textureCoords)
         {
             this->SetTexEnv(TEXENV_MODE_TEXTURE);
@@ -90,7 +110,7 @@ namespace love
             this->buffer->FlushDataCache();
         }
 
-        vertex::TriangleIndexMode mode;
+        vertex::PrimitiveType mode;
         std::unique_ptr<Vector2[]> positions;
 
         size_t count;

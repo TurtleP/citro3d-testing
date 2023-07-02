@@ -3,6 +3,10 @@
 #include "drawcommand.hpp"
 #include "renderer.hpp"
 
+#include "polyline/types/beveljoin.hpp"
+#include "polyline/types/miterjoin.hpp"
+#include "polyline/types/nonejoin.hpp"
+
 using namespace love;
 
 Graphics::Graphics()
@@ -12,39 +16,84 @@ Graphics::Graphics()
 
     this->state.reserve(0x0A);
     this->state.push_back(DisplayState {});
+
+    this->pixelScaleStack.reserve(0x0A);
+    this->pixelScaleStack.push_back(1.0);
 }
 
-void Graphics::Polyfill(std::span<love::Vector2> points, const Color& color, bool skipLastVertex)
+void Graphics::Polyline(const std::span<Vector2> points)
 {
-    const auto transform = transformStack.back();
-    bool is2D            = transform.IsAffine2DTransform();
 
-    const int count = points.size() - (skipLastVertex ? 1 : 0);
-    DrawCommand command(count);
+    float halfWidth     = this->GetLineWidth() * 0.5f;
+    LineJoin lineJoin   = this->GetLineJoin();
+    LineStyle lineStyle = this->GetLineStyle();
 
-    if (is2D)
-        transform.TransformXY(command.Positions().get(), points.data(), command.count);
+    float pixelSize   = 1.0f / std::max((float)this->pixelScaleStack.back(), 0.000001f);
+    bool shouldSmooth = lineStyle == LINE_SMOOTH;
 
-    command.FillVertices(color);
+    if (lineJoin == LINE_JOIN_NONE)
+    {
+        NoneJoinPolyline line;
+        line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
 
-    love::Renderer::Instance().Render(command);
+        line.draw(this);
+    }
+    else if (lineJoin == LINE_JOIN_BEVEL)
+    {
+        BevelJoinPolyline line;
+        line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+        line.draw(this);
+    }
+    else if (lineJoin == LINE_JOIN_MITER)
+    {
+        MiterJoinPolyline line;
+        line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+        line.draw(this);
+    }
 }
 
-void Graphics::Rectangle(float x, float y, float width, float height, const Color& color)
+void Graphics::Polyfill(DrawMode mode, std::span<love::Vector2> points, const Color& color,
+                        bool skipLastVertex)
+{
+    if (mode == DRAW_LINE)
+    {
+        this->Polyline(points);
+    }
+    else
+    {
+        const auto transform = transformStack.back();
+        bool is2D            = transform.IsAffine2DTransform();
+
+        const int count = points.size() - (skipLastVertex ? 1 : 0);
+        DrawCommand command(count);
+
+        if (is2D)
+            transform.TransformXY(command.Positions().get(), points.data(), command.count);
+
+        command.FillVertices(color);
+
+        love::Renderer::Instance().Render(command);
+    }
+}
+
+void Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,
+                         const Color& color)
 {
     std::array<love::Vector2, 0x05> points = { love::Vector2(x, y), love::Vector2(x, y + height),
                                                love::Vector2(x + width, y + height),
                                                love::Vector2(x + width, y), love::Vector2(x, y) };
 
-    this->Polyfill(points, color);
+    this->Polyfill(mode, points, color);
 }
 
-void Graphics::Rectangle(float x, float y, float width, float height, float rx, float ry,
-                         int points, const Color& color)
+void Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                         float ry, int points, const Color& color)
 {
     if (rx <= 0 || ry <= 0)
     {
-        this->Rectangle(x, y, width, height, color);
+        this->Rectangle(mode, x, y, width, height, color);
         return;
     }
 
@@ -95,7 +144,7 @@ void Graphics::Rectangle(float x, float y, float width, float height, float rx, 
     }
 
     coords[pointCount] = coords[0];
-    this->Polyfill(std::span(coords, pointCount + 1), color);
+    this->Polyfill(mode, std::span(coords, pointCount + 1), color);
 }
 
 int Graphics::CalculateEllipsePoints(float rx, float ry)
@@ -136,7 +185,7 @@ void Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b, int po
 
     coords[points] = coords[0];
 
-    this->Polyfill(std::span(polygonCoords, points + extraPoints), color, false);
+    this->Polyfill(mode, std::span(polygonCoords, points + extraPoints), color, false);
 }
 
 void Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b, const Color& color)
@@ -218,7 +267,7 @@ void Graphics::Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radiu
         coords[numCoords - 1] = coords[0];
     }
 
-    this->Polyfill(std::span(coords, numCoords), color);
+    this->Polyfill(mode, std::span(coords, numCoords), color);
     delete[] coords;
 }
 

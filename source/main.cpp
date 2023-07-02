@@ -75,12 +75,26 @@ int main(int argc, char** argv)
         texture->Draw(love::Graphics::Instance(), texturePosition);
 
         love::Graphics::Instance().SetColor({ 1, 0, 0, 1 });
-        love::Graphics::Instance().Rectangle(2, 2, 32, 32, 4, 4, 8,
+        love::Graphics::Instance().Rectangle(love::Graphics::DRAW_LINE, 2, 2, 32, 32,
+                                             love::Graphics::Instance().GetColor());
+
+        love::Graphics::Instance().Rectangle(love::Graphics::DRAW_FILL, 336, 176, 32, 32, 4, 4, 8,
                                              love::Graphics::Instance().GetColor());
 
         love::Graphics::Instance().SetColor(pacmanColor);
-        love::Graphics::Instance().Arc(mode, arcMode, 200, 120, 60, pacmanMouth,
+        love::Graphics::Instance().Arc(mode, arcMode, 200, 120, 20, pacmanMouth,
                                        M_TAU - pacmanMouth, love::Graphics::Instance().GetColor());
+
+        love::Graphics::Instance().Arc(love::Graphics::DRAW_LINE, arcMode, 200, 120, 60,
+                                       pacmanMouth, M_TAU - pacmanMouth,
+                                       love::Graphics::Instance().GetColor());
+
+        love::Graphics::Instance().SetColor({ 0, 1, 0, 1 });
+        love::Graphics::Instance().Circle(love::Graphics::DRAW_FILL, 8, 8, 8,
+                                          love::Graphics::Instance().GetColor());
+
+        love::Graphics::Instance().Circle(love::Graphics::DRAW_LINE, 320, 160, 8,
+                                          love::Graphics::Instance().GetColor());
 
         // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
         // drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);

@@ -64,10 +64,14 @@ source/framebuffer.cpp
 source/graphics.cpp
 source/main.cpp
 source/matrix.cpp
+source/polyline/polyline.cpp
+source/polyline/types/beveljoin.cpp
+source/polyline/types/miterjoin.cpp
+source/polyline/types/nonejoin.cpp
+source/quad.cpp
 source/renderer.cpp
 source/shader.cpp
 source/texture.cpp
-source/quad.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE citro3d)
