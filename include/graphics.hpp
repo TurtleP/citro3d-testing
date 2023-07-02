@@ -77,6 +77,11 @@ namespace love
             return this->state.back().foreground;
         }
 
+        void SetColor(const Color& color)
+        {
+            this->state.back().foreground = color;
+        }
+
         Color GetBackgroundColor()
         {
             return this->state.back().background;

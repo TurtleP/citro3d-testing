@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     for (size_t index = 0; index < love::Shader::STANDARD_MAX_ENUM; index++)
         love::Shader::defaults[index] = new love::Shader();
 
-    const auto clearColor  = Color { 0, 1, 0, 1 };
+    const auto clearColor  = Color { 0, 0, 0, 1 };
     const auto pacmanColor = Color { 1, 1, 0, 1 };
 
     consoleInit(GFX_BOTTOM, NULL);
@@ -49,6 +49,9 @@ int main(int argc, char** argv)
     std::string filepath       = cwd + "/dio.t3x";
     auto* texture              = new love::Texture(filepath);
     const auto texturePosition = love::Matrix4(0, 0, 0, 1, 1, 0, 0, 0, 0);
+
+    const auto mode    = love::Graphics::DRAW_FILL;
+    const auto arcMode = love::Graphics::ARC_PIE;
 
     while (aptMainLoop())
     {
@@ -68,10 +71,16 @@ int main(int argc, char** argv)
         love::Renderer::Instance().BindFramebuffer();
         love::Renderer::Instance().Clear(clearColor);
 
+        love::Graphics::Instance().SetColor({ 1, 1, 1, 1 });
         texture->Draw(love::Graphics::Instance(), texturePosition);
 
-        love::Graphics::Instance().Arc(love::Graphics::DRAW_FILL, love::Graphics::ARC_PIE, 200, 120,
-                                       60, pacmanMouth, M_TAU - pacmanMouth, pacmanColor);
+        love::Graphics::Instance().SetColor({ 1, 0, 0, 1 });
+        love::Graphics::Instance().Rectangle(2, 2, 32, 32, 4, 4, 8,
+                                             love::Graphics::Instance().GetColor());
+
+        love::Graphics::Instance().SetColor(pacmanColor);
+        love::Graphics::Instance().Arc(mode, arcMode, 200, 120, 60, pacmanMouth,
+                                       M_TAU - pacmanMouth, love::Graphics::Instance().GetColor());
 
         // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
         // drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);

@@ -16,15 +16,12 @@ Texture::Texture(const std::string& path) : valid(false)
         return;
     }
 
-    LOG("Opened %s!", path.c_str());
     std::fseek(file, 0, SEEK_END);
     long size = std::ftell(file);
     std::fseek(file, 0, SEEK_SET);
-    LOG("Size: %ld", size);
 
     auto fdata = std::make_unique<uint8_t[]>(size);
     auto read  = (long)std::fread(fdata.get(), 1, size, file);
-    LOG("Read: %ld", read);
 
     if (read != size)
     {
@@ -37,21 +34,21 @@ Texture::Texture(const std::string& path) : valid(false)
 
     std::fclose(file);
 
-    LOG("Imported?");
     if (!imported)
         return;
-    LOG("Imported!");
+
     const Tex3DS_SubTexture* subTexture = Tex3DS_GetSubTexture(imported, 0);
 
     this->width  = subTexture->width;
     this->height = subTexture->height;
 
-    LOG("Dimensions: %ux%u", this->width, this->height);
-
     this->valid = true;
 
     Tex3DS_TextureFree(imported);
+
+    this->texture->border = 0;
     C3D_TexSetFilter(this->texture, GPU_LINEAR, GPU_LINEAR);
+    C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 
     Quad::Viewport view { 0, 0, (double)this->width, (double)this->height };
     this->quad = new Quad { view, this->texture->width, this->texture->height };

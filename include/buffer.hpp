@@ -50,8 +50,14 @@ namespace love
 
             if (R_FAILED(result))
                 this->valid = false;
-            else
-                C3D_SetBufInfo(&this->info);
+        }
+
+        void SetBufferInfo()
+        {
+            if (!this->valid)
+                return;
+
+            C3D_SetBufInfo(&this->info);
         }
 
       private:

@@ -16,12 +16,20 @@ namespace love
         static constexpr float MIN_DEPTH = 1.0f / 16384.0f;
 
       public:
+        enum TEXENV_MODE
+        {
+            TEXENV_MODE_PRIMITIVE,
+            TEXENV_MODE_TEXTURE,
+            TEXENV_MODE_MAX_ENUM
+        };
+
         DrawCommand(int vertexCount, vertex::TriangleIndexMode mode = vertex::TRIANGLE_FAN) :
             mode(mode),
             positions {},
             count(vertexCount),
             size(vertexCount * vertex::VERTEX_SIZE),
-            texture(nullptr)
+            texture(nullptr),
+            texEnvMode(TEXENV_MODE_MAX_ENUM)
         {
             try
             {
@@ -40,11 +48,7 @@ namespace love
 
         void FillVertices(const Color& color)
         {
-            // Plain ol' passthrough of vertex color.
-            C3D_TexEnv* env = C3D_GetTexEnv(0);
-            C3D_TexEnvInit(env);
-            C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+            this->SetTexEnv(TEXENV_MODE_PRIMITIVE);
 
             this->buffer  = std::make_shared<DrawBuffer>(this->size);
             auto vertices = this->buffer->GetBuffer();
@@ -66,12 +70,9 @@ namespace love
 
         void FillVertices(const Color& color, const Vector2* textureCoords)
         {
-            C3D_TexEnv* env = C3D_GetTexEnv(0);
-            C3D_TexEnvInit(env);
-            C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
+            this->SetTexEnv(TEXENV_MODE_TEXTURE);
 
-            this->buffer  = std::make_shared<DrawBuffer>(this->count);
+            this->buffer  = std::make_shared<DrawBuffer>(this->size);
             auto vertices = this->buffer->GetBuffer();
 
             for (size_t index = 0; index < this->count; index++)
@@ -98,5 +99,44 @@ namespace love
         C3D_Tex* texture;
 
         std::shared_ptr<DrawBuffer> buffer;
+
+      private:
+        TEXENV_MODE texEnvMode;
+        void* indicies;
+
+        void SetTexEnv(TEXENV_MODE mode)
+        {
+            if (mode == this->texEnvMode)
+                return;
+
+            C3D_TexEnv* env = C3D_GetTexEnv(0);
+            C3D_TexEnvInit(env);
+
+            GPU_TEVSRC source;
+            GPU_COMBINEFUNC combineFunc;
+
+            switch (mode)
+            {
+                case TEXENV_MODE_PRIMITIVE:
+                {
+                    source      = GPU_PRIMARY_COLOR;
+                    combineFunc = GPU_REPLACE;
+                    break;
+                }
+                case TEXENV_MODE_TEXTURE:
+                {
+                    source      = GPU_TEXTURE0;
+                    combineFunc = GPU_MODULATE;
+                    break;
+                }
+                default:
+                    throw love::Exception("Not allowed.");
+            }
+
+            C3D_TexEnvSrc(env, C3D_Both, source, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
+            C3D_TexEnvFunc(env, C3D_Both, combineFunc);
+
+            this->texEnvMode = mode;
+        }
     };
 } // namespace love

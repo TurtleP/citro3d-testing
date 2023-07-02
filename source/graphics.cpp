@@ -184,14 +184,14 @@ void Graphics::Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radiu
     int numCoords         = 0;
 
     // clang-format off
-            const auto createPoints = [&](love::Vector2* coordinates)
-            {
-                for (int index = 0; index <= points; ++index, phi += angleShift)
-                {
-                    coordinates[index].x = x + radius * cosf(phi);
-                    coordinates[index].y = y + radius * sinf(phi);
-                }
-            };
+    const auto createPoints = [&](love::Vector2* coordinates)
+    {
+        for (int index = 0; index <= points; ++index, phi += angleShift)
+        {
+            coordinates[index].x = x + radius * cosf(phi);
+            coordinates[index].y = y + radius * sinf(phi);
+        }
+    };
     // clang-format on
 
     if (arcMode == ARC_PIE)

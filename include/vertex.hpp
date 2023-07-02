@@ -13,7 +13,8 @@ namespace vertex
         TRIANGLE_NONE,
         TRIANGLE_STRIP,
         TRIANGLE_FAN,
-        TRIANGLE_QUADS
+        TRIANGLE_QUADS,
+        TRIANGLE_TRIS
     };
 
     struct Vertex
@@ -34,7 +35,7 @@ namespace vertex
             case TRIANGLE_STRIP:
                 return GPU_TRIANGLE_STRIP;
             default:
-                return GPU_TRIANGLE_FAN;
+                return GPU_TRIANGLES;
         }
     }
 

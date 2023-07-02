@@ -16,11 +16,6 @@ Renderer::Renderer() : inFrame(false)
     C3D_CullFace(GPU_CULL_NONE);
     C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
 
-    // env = C3D_GetTexEnv(0);
-    // C3D_TexEnvInit(env);
-    // C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-    // C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
-
     C3D_AttrInfo* attributes = C3D_GetAttrInfo();
     AttrInfo_Init(attributes);
 
@@ -40,8 +35,6 @@ void Renderer::BindFramebuffer(size_t index)
     if (!this->inFrame)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-
-        this->commands.clear();
         this->inFrame = true;
     }
 
@@ -59,6 +52,8 @@ void Renderer::Present()
     if (this->inFrame)
     {
         C3D_FrameEnd(0);
+
+        this->commands.clear();
         this->inFrame = false;
     }
 }
@@ -77,8 +72,9 @@ bool Renderer::Render(DrawCommand& command)
     if (command.texture)
         C3D_TexBind(0, command.texture);
 
-    C3D_DrawArrays(mode, 0, command.count);
+    command.buffer->SetBufferInfo();
 
+    C3D_DrawArrays(mode, 0, command.count);
     this->commands.push_back(command.buffer);
 
     return true;
