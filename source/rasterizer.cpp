@@ -41,25 +41,5 @@ GlyphData* Rasterizer::GetGlyphData(uint32_t glyph) const
     metrics.bearingX = out.xOffset;
     metrics.bearingY = this->metrics.ascent;
 
-    auto* glyphData = new GlyphData(glyph, metrics, PIXELFORMAT_LA8_UNORM);
-
-    TGLP_s* glyphInfo = this->face->finf.tglp;
-
-    const uint8_t* pixels = &glyphInfo->sheetData[glyphInfo->sheetSize * index];
-    uint8_t* destination  = (uint8_t*)glyphData->GetData();
-
-    uint32_t pitch = ((glyphInfo->cellWidth * 8) + 3) & 3;
-
-    for (int y = 0; y < (int)glyphInfo->cellHeight; y++)
-    {
-        for (int x = 0; x < (int)glyphInfo->cellWidth; x++)
-        {
-            uint8_t v = ((pixels[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
-            destination[2 * (y * glyphInfo->cellWidth + x) + 0] = 255;
-            destination[2 * (y * glyphInfo->cellWidth + x) + 1] = v;
-        }
-        pixels += pitch;
-    }
-
-    return glyphData;
+    return new GlyphData(glyph, metrics, PIXELFORMAT_RGBA8_UNORM);
 }

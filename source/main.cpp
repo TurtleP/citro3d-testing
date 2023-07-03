@@ -16,6 +16,7 @@
 
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <limits.h>
 #include <span>
 #include <unistd.h>
@@ -49,7 +50,7 @@ int main(int argc, char** argv)
 
     LOG("%s", cwd.c_str());
 
-    std::string filepath       = cwd + "/dio.t3x";
+    std::string filepath       = std::filesystem::path(cwd + "/dio.t3x").lexically_normal();
     auto* texture              = new love::Texture(filepath);
     const auto texturePosition = love::Matrix4(0, 0, 0, 1, 1, 0, 0, 0, 0);
 
@@ -60,10 +61,6 @@ int main(int argc, char** argv)
     auto* glyphData  = rasterizer->GetGlyphData(65);
 
     LOG("%s", glyphData->GetGlyphString().c_str());
-
-    std::FILE* file = std::fopen("test.la8", "wb");
-    std::fwrite(glyphData->GetData(), 1, glyphData->GetSize(), file);
-    std::fclose(file);
 
     while (aptMainLoop())
     {

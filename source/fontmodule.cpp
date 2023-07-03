@@ -5,7 +5,7 @@
 
 using namespace love;
 
-static constexpr char* const fontPaths[] = {
+static constexpr const char* const fontPaths[] = {
     "font:/cbf_std.bcfnt.lz",
     "font:/cbf_zh-Hans-CN.bcfnt.lz",
     "font:/cbf_ko-Hang-KR.bcfnt.lz",

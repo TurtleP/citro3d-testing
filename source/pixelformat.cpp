@@ -212,8 +212,11 @@ namespace love
     {
         const PixelFormatInfo& info = formatInfo[format];
 
-        width  = NextPo2(width);
-        height = NextPo2(height);
+        if (needPowerOfTwo)
+        {
+            width  = NextPo2(width);
+            height = NextPo2(height);
+        }
 
         size_t blockWidth  = (width + info.blockWidth - 1) / info.blockWidth;
         size_t blockHeight = (height + info.blockHeight - 1) / info.blockHeight;
