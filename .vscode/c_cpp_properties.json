@@ -2,6 +2,7 @@
     "env": {
         "defaultIncludePath": [
             "${workspaceFolder}/include/**",
+            "${workspaceFolder}/libraries/**"
         ],
         "defaultCStandard": "c11",
         "defaultCppStandard": "c++20",

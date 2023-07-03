@@ -54,21 +54,26 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 # Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
+    libraries/utf8
 )
 
 # Source code files
 # find source -type f | grep "\.cpp$" | clip
 target_sources(${PROJECT_NAME} PRIVATE
 source/exception.cpp
+source/fontmodule.cpp
 source/framebuffer.cpp
+source/glyphdata.cpp
 source/graphics.cpp
 source/main.cpp
 source/matrix.cpp
+source/pixelformat.cpp
 source/polyline/polyline.cpp
 source/polyline/types/beveljoin.cpp
 source/polyline/types/miterjoin.cpp
 source/polyline/types/nonejoin.cpp
 source/quad.cpp
+source/rasterizer.cpp
 source/renderer.cpp
 source/shader.cpp
 source/texture.cpp

@@ -18,7 +18,7 @@ Texture::Texture(const std::string& path) : valid(false)
 
     std::fseek(file, 0, SEEK_END);
     long size = std::ftell(file);
-    std::fseek(file, 0, SEEK_SET);
+    std::rewind(file);
 
     auto fdata = std::make_unique<uint8_t[]>(size);
     auto read  = (long)std::fread(fdata.get(), 1, size, file);

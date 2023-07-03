@@ -8,6 +8,7 @@
 #include "graphics.hpp"
 #include "logfile.hpp"
 #include "matrix.hpp"
+#include "rasterizer.hpp"
 #include "renderer.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
@@ -24,6 +25,8 @@ int main(int argc, char** argv)
 {
     love::Renderer::Instance();
     love::Graphics::Instance();
+
+    cfguInit();
 
     if (Result rc = romfsInit(); R_FAILED(rc))
         return 0;
@@ -52,6 +55,15 @@ int main(int argc, char** argv)
 
     const auto mode    = love::Graphics::DRAW_FILL;
     const auto arcMode = love::Graphics::ARC_PIE;
+
+    auto* rasterizer = new love::Rasterizer(CFG_REGION_USA, 16.0f);
+    auto* glyphData  = rasterizer->GetGlyphData(65);
+
+    LOG("%s", glyphData->GetGlyphString().c_str());
+
+    std::FILE* file = std::fopen("test.la8", "wb");
+    std::fwrite(glyphData->GetData(), 1, glyphData->GetSize(), file);
+    std::fclose(file);
 
     while (aptMainLoop())
     {
@@ -109,6 +121,10 @@ int main(int argc, char** argv)
     }
 
     delete texture;
+    delete rasterizer;
+    delete glyphData;
+
+    cfguExit();
 
     romfsExit();
 }
