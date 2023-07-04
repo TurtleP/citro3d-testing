@@ -113,10 +113,6 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
 
 const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 {
-    const auto iterator = this->glyphs.find(glyph);
-    if (iterator != this->glyphs.end())
-        return iterator->second;
-
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph));
 
     auto width  = data->GetWidth();
@@ -172,7 +168,7 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
         {
             _glyph.vertices[index] = vertices[index];
 
-            _glyph.vertices[index].position[0] += data->GetBearingX() + this->scale * width;
+            _glyph.vertices[index].position[0] += data->GetBearingX();
             _glyph.vertices[index].position[1] += data->GetBearingY();
         }
     }
