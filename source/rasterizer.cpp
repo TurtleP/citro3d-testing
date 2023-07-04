@@ -41,5 +41,18 @@ GlyphData* Rasterizer::GetGlyphData(uint32_t glyph) const
     metrics.bearingX = out.xOffset;
     metrics.bearingY = this->metrics.ascent;
 
-    return new GlyphData(glyph, metrics, PIXELFORMAT_RGBA8_UNORM);
+    GlyphData::GlyphSheetInfo info {};
+    info.index  = out.sheetIndex;
+    info.top    = out.texcoord.top;
+    info.left   = out.texcoord.left;
+    info.right  = out.texcoord.right;
+    info.bottom = out.texcoord.bottom;
+
+    return new GlyphData(glyph, metrics, info);
+}
+
+const bool Rasterizer::HasGlyph(uint32_t glyph) const
+{
+    int index = fontGlyphIndexFromCodePoint(this->face, glyph);
+    return index != fontGetInfo(this->face)->alterCharIndex;
 }

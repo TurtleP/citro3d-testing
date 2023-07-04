@@ -91,6 +91,9 @@ namespace love
         template<typename Vdst, typename Vsrc>
         void TransformXY(Vdst* dst, const Vsrc* src, int size) const;
 
+        template<typename Vdst, typename Vsrc>
+        void TransformXYVert(Vdst* dst, const Vsrc* src, int size) const;
+
         /**
          * Transforms an array of 2-component vertices by this Matrix, and stores
          * them in an array of 3-component vertices.
@@ -115,6 +118,23 @@ namespace love
             float x = (this->matrix.r[0].x * src[i].x) + (this->matrix.r[0].y * src[i].y) + (0) + (this->matrix.r[0].w);
             float y = (this->matrix.r[1].x * src[i].x) + (this->matrix.r[1].y * src[i].y) + (0) + (this->matrix.r[1].w);
             // clang-format on
+
+            dst[i].x = x;
+            dst[i].y = y;
+        }
+    }
+
+    template<typename Vdst, typename Vsrc>
+    void Matrix4::TransformXYVert(Vdst* dst, const Vsrc* src, int size) const
+    {
+        for (int i = 0; i < size; i++)
+        {
+            // Store in temp variables in case src = dst
+            float x = (this->matrix.r[0].x * src[i].position[0]) +
+                      (this->matrix.r[0].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
+
+            float y = (this->matrix.r[1].x * src[i].position[0]) +
+                      (this->matrix.r[1].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
 
             dst[i].x = x;
             dst[i].y = y;

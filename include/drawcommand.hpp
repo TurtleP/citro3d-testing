@@ -88,6 +88,24 @@ namespace love
             }
         }
 
+        void FillVertices(const vertex::Vertex* data)
+        {
+            this->buffer  = std::make_shared<DrawBuffer>(this->size);
+            auto vertices = this->buffer->GetBuffer();
+
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = data[index].color,
+                    .texcoord = data[index].texcoord
+                };
+                // clang-format on
+            }
+        }
+
         void FillVertices(const Color& color, const Vector2* textureCoords)
         {
             this->SetTexEnv(TEXENV_MODE_TEXTURE);

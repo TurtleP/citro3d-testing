@@ -4,6 +4,7 @@
 
 #include "color.hpp"
 #include "drawcommand.hpp"
+#include "font.hpp"
 #include "framebuffer.hpp"
 #include "graphics.hpp"
 #include "logfile.hpp"
@@ -57,10 +58,17 @@ int main(int argc, char** argv)
     const auto mode    = love::Graphics::DRAW_FILL;
     const auto arcMode = love::Graphics::ARC_PIE;
 
-    auto* rasterizer = new love::Rasterizer(CFG_REGION_USA, 16.0f);
-    auto* glyphData  = rasterizer->GetGlyphData(65);
+    auto* rasterizer        = new love::Rasterizer(CFG_REGION_USA, 16.0f);
+    auto* font              = new love::Font(rasterizer);
+    const auto textPosition = love::Matrix4(200, 226, 0, 1, 1, 0, 0, 0, 0);
 
-    LOG("%s", glyphData->GetGlyphString().c_str());
+    love::Font::ColoredStrings strings {};
+
+    love::Font::ColoredString string {};
+    string.string = "Hello World";
+    string.color  = Color(Color::WHITE);
+
+    strings.push_back(string);
 
     while (aptMainLoop())
     {
@@ -80,33 +88,10 @@ int main(int argc, char** argv)
         love::Renderer::Instance().BindFramebuffer();
         love::Renderer::Instance().Clear(clearColor);
 
-        love::Graphics::Instance().SetColor({ 1, 1, 1, 1 });
-        texture->Draw(love::Graphics::Instance(), texturePosition);
+        font->Print(love::Graphics::Instance(), strings, textPosition, { 1, 0, 0, 1 });
 
-        love::Graphics::Instance().SetColor({ 1, 0, 0, 1 });
-        love::Graphics::Instance().Rectangle(love::Graphics::DRAW_LINE, 2, 2, 32, 32,
-                                             love::Graphics::Instance().GetColor());
-
-        love::Graphics::Instance().Rectangle(love::Graphics::DRAW_FILL, 336, 176, 32, 32, 4, 4, 8,
-                                             love::Graphics::Instance().GetColor());
-
-        love::Graphics::Instance().SetColor(pacmanColor);
-        love::Graphics::Instance().Arc(mode, arcMode, 200, 120, 20, pacmanMouth,
-                                       M_TAU - pacmanMouth, love::Graphics::Instance().GetColor());
-
-        love::Graphics::Instance().Arc(love::Graphics::DRAW_LINE, arcMode, 200, 120, 60,
-                                       pacmanMouth, M_TAU - pacmanMouth,
-                                       love::Graphics::Instance().GetColor());
-
-        love::Graphics::Instance().SetColor({ 0, 1, 0, 1 });
-        love::Graphics::Instance().Circle(love::Graphics::DRAW_FILL, 8, 8, 8,
-                                          love::Graphics::Instance().GetColor());
-
-        love::Graphics::Instance().Circle(love::Graphics::DRAW_LINE, 320, 160, 8,
-                                          love::Graphics::Instance().GetColor());
-
-        // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6, pacmanColor);
-        // drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);
+        // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6,
+        // pacmanColor); drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);
         // drawCircle(DRAW_FILL, 100, 60, 15, 16, pacmanColor);
         // drawCircle(DRAW_FILL, 300, 60, 15, 16, pacmanColor);
 
@@ -119,7 +104,7 @@ int main(int argc, char** argv)
 
     delete texture;
     delete rasterizer;
-    delete glyphData;
+    delete font;
 
     cfguExit();
 

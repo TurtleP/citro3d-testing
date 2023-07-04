@@ -61,12 +61,14 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # find source -type f | grep "\.cpp$" | clip
 target_sources(${PROJECT_NAME} PRIVATE
 source/exception.cpp
+source/font.cpp
 source/fontmodule.cpp
 source/framebuffer.cpp
 source/glyphdata.cpp
 source/graphics.cpp
 source/main.cpp
 source/matrix.cpp
+source/object.cpp
 source/pixelformat.cpp
 source/polyline/polyline.cpp
 source/polyline/types/beveljoin.cpp
@@ -77,6 +79,7 @@ source/rasterizer.cpp
 source/renderer.cpp
 source/shader.cpp
 source/texture.cpp
+source/type.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE citro3d)

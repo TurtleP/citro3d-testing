@@ -3,10 +3,15 @@
 #include <3ds.h>
 
 #include "glyphdata.hpp"
+#include "object.hpp"
+
+#include <utf8.h>
 
 namespace love
 {
-    class Rasterizer
+    using Utf8Iterator = utf8::iterator<std::string_view::const_iterator>;
+
+    class Rasterizer : public Object
     {
       public:
         struct FontMetrics
@@ -17,11 +22,25 @@ namespace love
             int height;
         };
 
+        static inline Type type = Type("Rasterizer", &Object::type);
+
+        const float GetHeight() const
+        {
+            return this->metrics.height;
+        }
+
+        CFNT_s* GetFont() const
+        {
+            return this->face;
+        }
+
         Rasterizer(CFG_Region region, int size);
 
         ~Rasterizer();
 
         GlyphData* GetGlyphData(uint32_t glyph) const;
+
+        const bool HasGlyph(uint32_t glyph) const;
 
       private:
         int glyphCount;

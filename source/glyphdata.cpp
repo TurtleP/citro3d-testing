@@ -7,16 +7,15 @@
 
 using namespace love;
 
-GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format) :
+GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, GlyphSheetInfo info) :
     glyph(glyph),
     metrics(metrics),
-    format(format)
+    sheetInfo(info)
 {
-    if (format != PIXELFORMAT_LA8_UNORM && format != PIXELFORMAT_RGBA8_UNORM)
-        throw love::Exception("Invalid GlyphData pixel format!");
-
     if (this->metrics.width > 0 && this->metrics.height > 0)
-        this->data = std::make_unique<uint8_t[]>(this->GetSize());
+        throw love::Exception("Invalid width GlyphMetrics width or height.");
+
+    this->data = std::make_unique<uint8_t[]>(1);
 }
 
 GlyphData::GlyphData(const GlyphData& other) :
@@ -24,13 +23,7 @@ GlyphData::GlyphData(const GlyphData& other) :
     metrics(other.metrics),
     data(nullptr),
     format(other.format)
-{
-    if (metrics.width > 0 && metrics.height > 0)
-    {
-        this->data = std::make_unique<uint8_t[]>(this->GetSize());
-        std::copy_n(other.data.get(), this->GetSize(), this->data.get());
-    }
-}
+{}
 
 GlyphData* GlyphData::Clone() const
 {
