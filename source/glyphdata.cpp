@@ -1,7 +1,8 @@
 #include "glyphdata.hpp"
 #include "exception.hpp"
+#include "logfile.hpp"
 
-#include "utf8.h"
+#include <utf8.h>
 
 #include <algorithm>
 
@@ -10,10 +11,11 @@ using namespace love;
 GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, GlyphSheetInfo info) :
     glyph(glyph),
     metrics(metrics),
-    sheetInfo(info)
+    sheetInfo(info),
+    data(nullptr)
 {
-    if (this->metrics.width > 0 && this->metrics.height > 0)
-        throw love::Exception("Invalid width GlyphMetrics width or height.");
+    if (this->metrics.width <= 0 && this->metrics.height <= 0)
+        throw love::Exception("Invalid GlyphMetrics width or height.");
 
     this->data = std::make_unique<uint8_t[]>(1);
 }

@@ -53,6 +53,8 @@ GlyphData* Rasterizer::GetGlyphData(uint32_t glyph) const
 
 const bool Rasterizer::HasGlyph(uint32_t glyph) const
 {
-    int index = fontGlyphIndexFromCodePoint(this->face, glyph);
-    return index != fontGetInfo(this->face)->alterCharIndex;
+    int index        = fontGlyphIndexFromCodePoint(this->face, glyph);
+    const auto* info = fontGetInfo(this->face);
+
+    return index != info->alterCharIndex;
 }

@@ -34,6 +34,11 @@ namespace love
             return this->face;
         }
 
+        const float GetScale() const
+        {
+            return this->scale;
+        }
+
         Rasterizer(CFG_Region region, int size);
 
         ~Rasterizer();

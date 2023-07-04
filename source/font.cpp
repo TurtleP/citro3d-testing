@@ -8,13 +8,30 @@
 
 using namespace love;
 
-Font::Font(Rasterizer* rasterizer) : rasterizers({ rasterizer }), useSpacesAsTab(false)
+Font::Font(Rasterizer* rasterizer) :
+    rasterizers({ rasterizer }),
+    useSpacesAsTab(false),
+    scale(rasterizer->GetScale())
 {
     this->height = rasterizer->GetHeight();
 
     if (!rasterizer->HasGlyph(Font::TAB_GLYPH))
         this->useSpacesAsTab = true;
+
+    this->LoadVolatile();
 }
+
+bool Font::LoadVolatile()
+{
+    this->glyphs.clear();
+    this->textures.clear();
+    this->CreateTexture();
+
+    return true;
+}
+
+void Font::CreateTexture()
+{}
 
 void Font::GetCodepointsFromString(const ColoredStrings& strings, ColoredCodepoints& out)
 {
@@ -82,10 +99,9 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
         info.right  = space->GetRight();
         info.bottom = space->GetBottom();
 
-        delete space;
+        space->Release();
         return new GlyphData(glyph, metrics, info);
     }
-
     for (const auto& rasterizer : this->rasterizers)
     {
         if (rasterizer->HasGlyph(glyph))
@@ -97,9 +113,9 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
 
 const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 {
-    const auto find = this->glyphs.find(glyph);
-    if (find != this->glyphs.end())
-        return this->glyphs[glyph];
+    const auto iterator = this->glyphs.find(glyph);
+    if (iterator != this->glyphs.end())
+        return iterator->second;
 
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph));
 
@@ -123,7 +139,7 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 
         int sheet = data->GetSheet();
 
-        _glyph.texture->data   = &info->sheetData[info->sheetSize * sheet];
+        _glyph.texture->data   = fontGetGlyphSheetTex(this->rasterizers[0]->GetFont(), sheet);
         _glyph.texture->fmt    = (GPU_TEXCOLOR)info->sheetFmt;
         _glyph.texture->size   = info->sheetSize;
         _glyph.texture->width  = info->sheetWidth;
@@ -144,11 +160,11 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 
         // clang-format off
         const vertex::Vertex vertices[0x04] = {
-             /* x                           y                 z                u  v                                               v                                                  */
-            {{ -offset,                    -offset,           0.0f }, color, { left,  1.0f - top    }},
-            {{ -offset,                    (height + offset), 0.0f }, color, { left,  1.0f - bottom }},
-            {{ (width + offset),           (height + offset), 0.0f }, color, { right, 1.0f - bottom }},
-            {{ (width + offset),           -offset,           0.0f }, color, { right, 1.0f - top    }}
+             /* x                y                  z                u      v      */
+            {{ -offset,          -offset,           0.0f }, color, { left,  top    }},
+            {{ -offset,          (height + offset), 0.0f }, color, { left,  bottom }},
+            {{ (width + offset), (height + offset), 0.0f }, color, { right, bottom }},
+            {{ (width + offset), -offset,           0.0f }, color, { right, top    }}
         };
         // clang-format on
 
@@ -156,7 +172,7 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
         {
             _glyph.vertices[index] = vertices[index];
 
-            _glyph.vertices[index].position[0] += data->GetBearingX();
+            _glyph.vertices[index].position[0] += data->GetBearingX() + this->scale * width;
             _glyph.vertices[index].position[1] += data->GetBearingY();
         }
     }
@@ -273,8 +289,8 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
 
     /* texture binds are expensive, so we should sort by that first */
     const auto drawsort = [](const DrawCommand& a, const DrawCommand& b) -> bool {
-        if (a.texture != b.texture)
-            return a.texture < b.texture;
+        if (a.sheet < b.sheet)
+            return a.sheet < b.sheet;
         else
             return a.start < b.start;
     };
@@ -304,7 +320,7 @@ void Font::Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& 
     std::vector<vertex::Vertex> vertices {};
     auto commands = this->GenerateVertices(codepoints, color, vertices);
 
-    // this->Render(graphics, transform, commands, vertices);
+    this->Render(graphics, transform, commands, vertices);
 }
 
 void Font::Render(Graphics& graphics, const Matrix4& transform,

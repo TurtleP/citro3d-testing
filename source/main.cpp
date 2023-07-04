@@ -12,6 +12,7 @@
 #include "rasterizer.hpp"
 #include "renderer.hpp"
 #include "shader.hpp"
+#include "strongreference.hpp"
 #include "texture.hpp"
 #include "vector.hpp"
 
@@ -36,7 +37,7 @@ int main(int argc, char** argv)
     for (size_t index = 0; index < love::Shader::STANDARD_MAX_ENUM; index++)
         love::Shader::defaults[index] = new love::Shader();
 
-    const auto clearColor  = Color { 0, 0, 0, 1 };
+    auto clearColor        = Color { 0, 0, 0, 1 };
     const auto pacmanColor = Color { 1, 1, 0, 1 };
 
     consoleInit(GFX_BOTTOM, NULL);
@@ -49,8 +50,6 @@ int main(int argc, char** argv)
     if (getcwd(cwd_tmp, PATH_MAX))
         cwd = cwd_tmp;
 
-    LOG("%s", cwd.c_str());
-
     std::string filepath       = std::filesystem::path(cwd + "/dio.t3x").lexically_normal();
     auto* texture              = new love::Texture(filepath);
     const auto texturePosition = love::Matrix4(0, 0, 0, 1, 1, 0, 0, 0, 0);
@@ -58,9 +57,11 @@ int main(int argc, char** argv)
     const auto mode    = love::Graphics::DRAW_FILL;
     const auto arcMode = love::Graphics::ARC_PIE;
 
-    auto* rasterizer        = new love::Rasterizer(CFG_REGION_USA, 16.0f);
-    auto* font              = new love::Font(rasterizer);
-    const auto textPosition = love::Matrix4(200, 226, 0, 1, 1, 0, 0, 0, 0);
+    love::StrongReference<love::Rasterizer> rasterizer(new love::Rasterizer(CFG_REGION_USA, 16.0f),
+                                                       love::Acquire::NORETAIN);
+
+    auto* font              = new love::Font(rasterizer.Get());
+    const auto textPosition = love::Matrix4(200, 120, 0, 1, 1, 0, 0, 0, 0);
 
     love::Font::ColoredStrings strings {};
 
@@ -88,7 +89,7 @@ int main(int argc, char** argv)
         love::Renderer::Instance().BindFramebuffer();
         love::Renderer::Instance().Clear(clearColor);
 
-        font->Print(love::Graphics::Instance(), strings, textPosition, { 1, 0, 0, 1 });
+        font->Print(love::Graphics::Instance(), strings, textPosition, { 1, 1, 1, 1 });
 
         // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6,
         // pacmanColor); drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);
@@ -103,7 +104,6 @@ int main(int argc, char** argv)
     }
 
     delete texture;
-    delete rasterizer;
     delete font;
 
     cfguExit();

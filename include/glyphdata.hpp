@@ -11,6 +11,8 @@ namespace love
     class GlyphData : public Data
     {
       public:
+        static inline Type type = Type("GlyphData", &Data::type);
+
         struct GlyphMetrics
         {
             int width;
