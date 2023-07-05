@@ -65,11 +65,16 @@ int main(int argc, char** argv)
 
     love::Font::ColoredStrings strings {};
 
-    love::Font::ColoredString string {};
-    string.string = "Hello World";
-    string.color  = Color(Color::WHITE);
+    love::Font::ColoredString hello {};
+    hello.string = "Hello";
+    hello.color  = Color(1, 0, 0, 1);
 
-    strings.push_back(string);
+    love::Font::ColoredString world {};
+    world.string = " World!";
+    world.color  = Color(0, 1, 0, 1);
+
+    strings.push_back(hello);
+    strings.push_back(world);
 
     while (aptMainLoop())
     {

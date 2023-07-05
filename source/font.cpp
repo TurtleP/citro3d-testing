@@ -85,7 +85,6 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
     if (glyph == Font::TAB_GLYPH && this->useSpacesAsTab)
     {
         auto* space = this->rasterizers[0]->GetGlyphData(Font::SPACE_GLYPH);
-        auto format = space->GetFormat();
 
         GlyphData::GlyphMetrics metrics {};
         metrics.advance  = space->GetAdvance() * Font::SPACES_PER_TAB;
@@ -102,6 +101,7 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
         space->Release();
         return new GlyphData(glyph, metrics, info);
     }
+
     for (const auto& rasterizer : this->rasterizers)
     {
         if (rasterizer->HasGlyph(glyph))
@@ -119,30 +119,35 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
     auto height = data->GetHeight();
 
     Glyph _glyph {};
+    _glyph.texture = nullptr;
+    _glyph.spacing = std::floor(data->GetAdvance() / 1.5f);
+    std::fill_n(_glyph.vertices, 4, vertex::Vertex {});
 
     if (width > 0 && height > 0)
     {
-        _glyph.sheet   = data->GetSheet();
-        _glyph.spacing = std::floor(data->GetAdvance() / 1.5f);
-        std::fill_n(_glyph.vertices, 4, vertex::Vertex {});
+        _glyph.sheet = data->GetSheet();
+        if (this->textures.find(_glyph.sheet) == this->textures.end())
+            this->textures[_glyph.sheet] = std::make_shared<C3D_Tex>();
 
-        _glyph.texture = (C3D_Tex*)malloc(sizeof(C3D_Tex));
+        _glyph.texture = this->textures[_glyph.sheet].get();
 
         if (!_glyph.texture)
             throw love::Exception("Failed to allocate texture");
 
         TGLP_s* info = fontGetGlyphInfo(this->rasterizers[0]->GetFont());
 
-        int sheet = data->GetSheet();
+        const auto MIN_MAG =
+            GPU_TEXTURE_MAG_FILTER(GPU_LINEAR) | GPU_TEXTURE_MIN_FILTER(GPU_LINEAR);
 
-        _glyph.texture->data   = fontGetGlyphSheetTex(this->rasterizers[0]->GetFont(), sheet);
-        _glyph.texture->fmt    = (GPU_TEXCOLOR)info->sheetFmt;
-        _glyph.texture->size   = info->sheetSize;
-        _glyph.texture->width  = info->sheetWidth;
-        _glyph.texture->height = info->sheetHeight;
-        _glyph.texture->param =
-            GPU_TEXTURE_MAG_FILTER(GPU_LINEAR) | GPU_TEXTURE_MIN_FILTER(GPU_LINEAR) |
+        const auto WRAP =
             GPU_TEXTURE_WRAP_S(GPU_CLAMP_TO_BORDER) | GPU_TEXTURE_WRAP_T(GPU_CLAMP_TO_BORDER);
+
+        _glyph.texture->data  = fontGetGlyphSheetTex(this->rasterizers[0]->GetFont(), _glyph.sheet);
+        _glyph.texture->fmt   = (GPU_TEXCOLOR)info->sheetFmt;
+        _glyph.texture->size  = info->sheetSize;
+        _glyph.texture->width = info->sheetWidth;
+        _glyph.texture->height   = info->sheetHeight;
+        _glyph.texture->param    = MIN_MAG | WRAP;
         _glyph.texture->border   = 0;
         _glyph.texture->lodParam = 0;
 
@@ -185,6 +190,14 @@ const Font::Glyph& Font::FindGlyph(uint32_t glyph)
         return iterator->second;
 
     return this->AddGlyph(glyph);
+}
+
+static bool drawSort(const DrawCommand& a, const DrawCommand& b)
+{
+    if (a.sheet < b.sheet)
+        return a.sheet < b.sheet;
+    else
+        return a.start < b.start;
 }
 
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& text,
@@ -247,7 +260,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
             continue;
 
         const auto& glyphData = this->FindGlyph(glyph);
-        dx += 0.0f; /* this->GetKerning - no kerning on 3DS fonts */
+        dx += 0; /* this->GetKerning - no kerning on 3DS fonts */
 
         if (glyphData.texture != nullptr)
         {
@@ -283,15 +296,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
         previousGlyph = glyph;
     }
 
-    /* texture binds are expensive, so we should sort by that first */
-    const auto drawsort = [](const DrawCommand& a, const DrawCommand& b) -> bool {
-        if (a.sheet < b.sheet)
-            return a.sheet < b.sheet;
-        else
-            return a.start < b.start;
-    };
-
-    std::sort(commands.begin(), commands.end(), drawsort);
+    std::sort(commands.begin(), commands.end(), drawSort);
 
     if (dx > maxWidth)
         maxWidth = (int)dx;
@@ -319,24 +324,27 @@ void Font::Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& 
     this->Render(graphics, transform, commands, vertices);
 }
 
-void Font::Render(Graphics& graphics, const Matrix4& transform,
+void Font::Render(Graphics& graphics, const Matrix4& matrix,
                   const std::vector<DrawCommand>& commands,
                   const std::vector<vertex::Vertex>& vertices)
 {
     if (vertices.empty() || commands.empty())
         return;
 
-    Matrix4 matrix(graphics.GetTransform(), transform);
+    const auto& transform = graphics.GetTransform();
+    bool is2D             = transform.IsAffine2DTransform();
+
+    Matrix4 translated(transform, matrix);
 
     for (const auto& command : commands)
     {
         love::DrawCommand drawCommand(command.count);
         drawCommand.texture = command.texture;
 
-        matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
-                               command.count);
-        drawCommand.FillVertices(vertices.data());
+        translated.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
+                                   command.count);
 
+        drawCommand.FillVertices(vertices.data());
         Renderer::Instance().Render(drawCommand);
     }
 }

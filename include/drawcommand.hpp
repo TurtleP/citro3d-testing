@@ -107,6 +107,8 @@ namespace love
                 };
                 // clang-format on
             }
+
+            this->buffer->FlushDataCache();
         }
 
         void FillVertices(const Color& color, const Vector2* textureCoords)
@@ -152,10 +154,6 @@ namespace love
 
             C3D_TexEnv* env = C3D_GetTexEnv(0);
             C3D_TexEnvInit(env);
-
-            GPU_TEVSRC source;
-            C3D_TexEnvMode envMode;
-            GPU_COMBINEFUNC combineFunc;
 
             switch (mode)
             {
