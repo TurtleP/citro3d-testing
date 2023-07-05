@@ -192,7 +192,7 @@ const Font::Glyph& Font::FindGlyph(uint32_t glyph)
     return this->AddGlyph(glyph);
 }
 
-static bool drawSort(const DrawCommand& a, const DrawCommand& b)
+static bool drawSort(const Font::DrawCommand& a, const Font::DrawCommand& b)
 {
     if (a.sheet < b.sheet)
         return a.sheet < b.sheet;

@@ -50,13 +50,6 @@ int main(int argc, char** argv)
     if (getcwd(cwd_tmp, PATH_MAX))
         cwd = cwd_tmp;
 
-    std::string filepath       = std::filesystem::path(cwd + "/dio.t3x").lexically_normal();
-    auto* texture              = new love::Texture(filepath);
-    const auto texturePosition = love::Matrix4(0, 0, 0, 1, 1, 0, 0, 0, 0);
-
-    const auto mode    = love::Graphics::DRAW_FILL;
-    const auto arcMode = love::Graphics::ARC_PIE;
-
     love::StrongReference<love::Rasterizer> rasterizer(new love::Rasterizer(CFG_REGION_USA, 16.0f),
                                                        love::Acquire::NORETAIN);
 
@@ -95,15 +88,6 @@ int main(int argc, char** argv)
         love::Renderer::Instance().Clear(clearColor);
 
         font->Print(love::Graphics::Instance(), strings, textPosition, { 1, 1, 1, 1 });
-
-        // drawArc(DRAW_FILL, ARC_PIE, 100, 60, 20, M_PI / 6, (M_PI * 2) - M_PI / 6,
-        // pacmanColor); drawCircle(DRAW_FILL, 200, 120, 30, 16, pacmanColor);
-        // drawCircle(DRAW_FILL, 100, 60, 15, 16, pacmanColor);
-        // drawCircle(DRAW_FILL, 300, 60, 15, 16, pacmanColor);
-
-        /* render bottom screen */
-        // love::Renderer::Instance().BindFramebuffer(2);
-        // love::Renderer::Instance().Clear(clearColor);
 
         love::Renderer::Instance().Present();
     }
