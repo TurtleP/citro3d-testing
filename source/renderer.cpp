@@ -5,7 +5,7 @@
 
 using namespace love;
 
-Renderer::Renderer() : inFrame(false)
+Renderer::Renderer() : current(nullptr), currentTexture(nullptr), inFrame(false)
 {
     gfxInitDefault();
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 2);
@@ -58,6 +58,18 @@ void Renderer::Present()
     }
 }
 
+bool Renderer::CheckHandle(C3D_Tex* texture)
+{
+    if (!texture)
+        return false;
+
+    if (this->currentTexture == texture)
+        return false;
+
+    this->currentTexture = texture;
+    return true;
+}
+
 bool Renderer::Render(DrawCommand& command)
 {
     love::Shader::defaults[love::Shader::STANDARD_DEFAULT]->Attach();
@@ -67,12 +79,15 @@ bool Renderer::Render(DrawCommand& command)
 
     this->current->UpdateProjection(Shader::current->GetUniformLocations());
 
-    auto mode = vertex::GetMode(command.mode);
-
     if (command.handles.size() > 0)
-        C3D_TexBind(0, command.handles.back());
+    {
+        if (this->CheckHandle(command.handles.back()))
+            C3D_TexBind(0, this->currentTexture);
+    }
 
     command.buffer->SetBufferInfo();
+
+    auto mode = vertex::GetMode(command.mode);
 
     C3D_DrawArrays(mode, 0, command.count);
     this->commands.push_back(command.buffer);

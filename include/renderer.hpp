@@ -37,8 +37,11 @@ namespace love
         bool Render(DrawCommand& command);
 
       private:
+        bool CheckHandle(C3D_Tex* texture);
+
         std::array<Framebuffer, 0x03> framebuffers;
         Framebuffer* current;
+        C3D_Tex* currentTexture;
 
         bool inFrame;
 

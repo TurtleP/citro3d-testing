@@ -51,7 +51,7 @@ Texture::Texture(const std::string& path) : valid(false)
     C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 
     Quad::Viewport view { 0, 0, (double)this->width, (double)this->height };
-    this->quad = new Quad { view, this->texture->width, this->texture->height };
+    this->quad = new Quad { view, (double)this->texture->width, (double)this->texture->height };
 }
 
 Texture::~Texture()
