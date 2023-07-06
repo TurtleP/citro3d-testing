@@ -7,6 +7,7 @@
 #include <utf8.h>
 
 using namespace love;
+using namespace vertex;
 
 Font::Font(Rasterizer* rasterizer) :
     rasterizers({ rasterizer }),
@@ -48,9 +49,9 @@ void Font::CreateTexture()
 
     for (size_t index = 0; index < glyphInfo->nSheets; index++)
     {
-        this->textures.emplace(index, new C3D_Tex());
+        this->textures.emplace(index, std::make_shared<C3D_Tex>());
 
-        C3D_Tex* texture  = this->textures[index];
+        C3D_Tex* texture  = this->textures[index].get();
         texture->data     = fontGetGlyphSheetTex(font, index);
         texture->fmt      = (GPU_TEXCOLOR)glyphInfo->sheetFmt;
         texture->size     = glyphInfo->sheetSize;
@@ -85,7 +86,7 @@ void Font::GetCodepointsFromString(const ColoredStrings& strings, ColoredCodepoi
     if (out.colors.size() == 1)
     {
         IndexedColor color = out.colors[0];
-        if (color.index == 0 && color.color == Color::WHITE)
+        if (color.index == 0 && color.color == Color(Color::WHITE))
             out.colors.pop_back();
     }
 }
@@ -144,22 +145,21 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
 
 const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 {
-    LOG("Glyph: %lu", glyph);
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph));
 
     auto width  = data->GetWidth();
     auto height = data->GetHeight();
-    LOG("Dimensions: %dx%d", width, height);
+
     Glyph _glyph {};
 
     _glyph.texture = nullptr;
     _glyph.spacing = std::floor(data->GetAdvance() / 1.5f);
-    std::fill_n(_glyph.vertices, 4, vertex::Vertex {});
+    std::fill_n(_glyph.vertices.data(), 4, vertex::Vertex {});
 
     if (width > 0 && height > 0)
     {
         _glyph.sheet   = data->GetSheetIndex();
-        _glyph.texture = this->textures[_glyph.sheet];
+        _glyph.texture = this->textures[_glyph.sheet].get();
 
         const auto offset = 1.0f;
         const auto color  = Color(Color::WHITE).array();
@@ -169,19 +169,14 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
         const auto right  = data->GetRight();
         const auto bottom = data->GetBottom();
 
-        LOG("Top-Left: %f, %f", left, top);
-        LOG("Bottom Left: %f, %f", right, top);
-        LOG("Bottom Right: %f, %f", left, bottom);
-        LOG("Top Right: %f, %f", right, top);
-
         // clang-format off
-        const vertex::Vertex vertices[0x04] = 
+        const std::array<Vertex, 0x04> vertices = 
         {
-             /* x                y                  z                u      v      */
-            {{ -offset,          -offset,           0.0f }, color, { left,  top    }},
-            {{ -offset,          (height + offset), 0.0f }, color, { right, top    }},
-            {{ (width + offset), (height + offset), 0.0f }, color, { left,  bottom }},
-            {{ (width + offset), -offset,           0.0f }, color, { right, bottom }}
+            /*        x                 y                  z                u      v      */
+            Vertex {{ -offset,          -offset,           0.0f }, color, { left,  top    }},
+            Vertex {{ -offset,          (height + offset), 0.0f }, color, { right, top    }},
+            Vertex {{ (width + offset), (height + offset), 0.0f }, color, { left,  bottom }},
+            Vertex {{ (width + offset), -offset,           0.0f }, color, { right, bottom }}
         };
         // clang-format on
 
@@ -225,7 +220,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
     float heightOffset = 0.0f;
 
     int maxWidth = 0;
-    std::vector<DrawCommand> commands;
+    std::vector<DrawCommand> commands {};
 
     /* reserve max possible vertex size */
     size_t startSize = vertices.size();

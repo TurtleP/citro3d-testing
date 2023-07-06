@@ -60,7 +60,7 @@ namespace love
         {
             C3D_Tex* texture;
             int spacing;
-            vertex::Vertex vertices[0x04];
+            std::array<vertex::Vertex, 0x04> vertices;
             int sheet;
         };
 
@@ -124,7 +124,7 @@ namespace love
                     const std::vector<vertex::Vertex>& vertices);
 
         std::vector<StrongReference<Rasterizer>> rasterizers;
-        std::unordered_map<uint32_t, C3D_Tex*> textures;
+        std::unordered_map<uint32_t, std::shared_ptr<C3D_Tex>> textures;
 
         bool LoadVolatile();
 
