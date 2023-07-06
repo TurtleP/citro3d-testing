@@ -1,11 +1,12 @@
 #include "fontmodule.hpp"
 #include "exception.hpp"
 
+#include <array>
 #include <memory>
 
 using namespace love;
 
-static constexpr const char* const fontPaths[] = {
+static constexpr std::array<const char*, 0x04> fontPaths = {
     "font:/cbf_std.bcfnt.lz",
     "font:/cbf_zh-Hans-CN.bcfnt.lz",
     "font:/cbf_ko-Hang-KR.bcfnt.lz",
@@ -51,7 +52,7 @@ static CFNT_s* loadFromArchive(uint64_t title, const char* path)
     uint32_t fontSize = *(uint32_t*)fontData.get() >> 0x08;
     font              = (CFNT_s*)linearAlloc(fontSize);
 
-    if (!decompress_LZ11(font, fontSize, nullptr, fontData.get() + 4, size - 4))
+    if (font && !decompress_LZ11(font, fontSize, nullptr, fontData.get() + 4, size - 4))
     {
         linearFree(font);
         throw love::Exception("Failed to decompress '%s'", path);
@@ -85,8 +86,16 @@ CFNT_s* FontModule::LoadSystemFont(CFG_Region region)
 
     Result result = CFGU_SecureInfoGetRegion(&systemRegion);
 
+    if (R_FAILED(fontEnsureMapped()))
+        svcBreak(USERBREAK_PANIC);
+
     if (R_FAILED(result) || index == getFontIndex((CFG_Region)systemRegion))
-        return fontGetSystemFont();
+        return fontGetSystemFont(); // calls fontEnsureMapped
 
     return loadFromArchive(FontModule::FONT_ARCHIVE | (index << 8), fontPaths[index]);
+}
+
+Rasterizer* FontModule::NewRasterizer(float size, CFG_Region region)
+{
+    return new Rasterizer(region, size);
 }

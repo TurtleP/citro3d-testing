@@ -1,11 +1,12 @@
 #include "graphics.hpp"
 
 #include "drawcommand.hpp"
-#include "renderer.hpp"
+#include "font.hpp"
 
 #include "polyline/types/beveljoin.hpp"
 #include "polyline/types/miterjoin.hpp"
 #include "polyline/types/nonejoin.hpp"
+#include "renderer.hpp"
 
 using namespace love;
 
@@ -281,4 +282,14 @@ void Graphics::Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radiu
         points *= angle / (float)LOVE_M_TAU;
 
     this->Arc(mode, arcMode, x, y, radius, angle1, angle2, (int)(points + 0.5f), color);
+}
+
+void Graphics::Print(const Font::ColoredStrings& strings, Font* font, const Matrix4& matrix)
+{
+    font->Print(*this, strings, matrix, this->state.back().foreground);
+}
+
+void Graphics::Print(const Font::ColoredStrings& strings, const Matrix4& matrix)
+{
+    this->Print(strings, this->state.back().font.Get(), matrix);
 }

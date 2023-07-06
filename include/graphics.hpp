@@ -1,6 +1,7 @@
 #pragma once
 
 #include "color.hpp"
+#include "font.hpp"
 #include "matrix.hpp"
 #include "vector.hpp"
 
@@ -46,6 +47,8 @@ namespace love
             float lineWidth     = 1.0f;
             LineJoin lineJoin   = LINE_JOIN_MITER;
             LineStyle lineStyle = LINE_SMOOTH;
+
+            StrongReference<Font> font;
         };
 
         Graphics();
@@ -81,6 +84,10 @@ namespace love
 
         void Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1,
                  float angle2, const Color& color);
+
+        void Print(const Font::ColoredStrings& strings, Font* font, const Matrix4& matrix);
+
+        void Print(const Font::ColoredStrings& strings, const Matrix4& matrix);
 
         void Origin()
         {
@@ -130,6 +137,16 @@ namespace love
         void SetLineStyle(LineStyle style)
         {
             this->state.back().lineStyle = style;
+        }
+
+        void SetFont(Font* font)
+        {
+            this->state.back().font = font;
+        }
+
+        Font* GetFont() const
+        {
+            return this->state.back().font;
         }
 
       private:

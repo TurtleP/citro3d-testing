@@ -70,7 +70,7 @@ namespace love
 
         int GetMaxY() const;
 
-        int GetSheet() const
+        int GetSheetIndex() const
         {
             return this->sheetInfo.index;
         }

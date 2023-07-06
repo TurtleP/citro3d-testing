@@ -69,8 +69,8 @@ bool Renderer::Render(DrawCommand& command)
 
     auto mode = vertex::GetMode(command.mode);
 
-    if (command.texture)
-        C3D_TexBind(0, command.texture);
+    if (command.handles.size() > 0)
+        C3D_TexBind(0, command.handles.back());
 
     command.buffer->SetBufferInfo();
 

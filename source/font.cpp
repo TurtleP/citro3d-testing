@@ -11,7 +11,8 @@ using namespace love;
 Font::Font(Rasterizer* rasterizer) :
     rasterizers({ rasterizer }),
     useSpacesAsTab(false),
-    scale(rasterizer->GetScale())
+    scale(rasterizer->GetScale()),
+    inited(false)
 {
     this->height = rasterizer->GetHeight();
 
@@ -31,7 +32,37 @@ bool Font::LoadVolatile()
 }
 
 void Font::CreateTexture()
-{}
+{
+    if (this->inited)
+        return;
+
+    auto* font            = this->rasterizers[0]->GetFont();
+    const auto* glyphInfo = fontGetGlyphInfo(font);
+
+    this->textures.reserve(glyphInfo->nSheets);
+
+    const auto MIN_MAG = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR) | GPU_TEXTURE_MIN_FILTER(GPU_LINEAR);
+
+    const auto WRAP =
+        GPU_TEXTURE_WRAP_S(GPU_CLAMP_TO_BORDER) | GPU_TEXTURE_WRAP_T(GPU_CLAMP_TO_BORDER);
+
+    for (size_t index = 0; index < glyphInfo->nSheets; index++)
+    {
+        this->textures.emplace(index, new C3D_Tex());
+
+        C3D_Tex* texture  = this->textures[index];
+        texture->data     = fontGetGlyphSheetTex(font, index);
+        texture->fmt      = (GPU_TEXCOLOR)glyphInfo->sheetFmt;
+        texture->size     = glyphInfo->sheetSize;
+        texture->width    = glyphInfo->sheetWidth;
+        texture->height   = glyphInfo->sheetHeight;
+        texture->param    = MIN_MAG | WRAP;
+        texture->border   = 0;
+        texture->lodParam = 0;
+    }
+
+    this->inited = true;
+}
 
 void Font::GetCodepointsFromString(const ColoredStrings& strings, ColoredCodepoints& out)
 {
@@ -40,15 +71,15 @@ void Font::GetCodepointsFromString(const ColoredStrings& strings, ColoredCodepoi
 
     out.codepoints.reserve(strings[0].string.size());
 
-    for (const auto& string : strings)
+    for (const auto& coloredString : strings)
     {
-        if (string.string.size() == 0)
+        if (coloredString.string.size() == 0)
             continue;
 
-        IndexedColor color = { string.color, (int)out.codepoints.size() };
+        IndexedColor color = { coloredString.color, (int)out.codepoints.size() };
         out.colors.push_back(color);
 
-        GetCodepointsFromString(string.string, out.codepoints);
+        Font::GetCodepointsFromString(coloredString.string, out.codepoints);
     }
 
     if (out.colors.size() == 1)
@@ -92,7 +123,7 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
         metrics.bearingY = space->GetBearingY();
 
         GlyphData::GlyphSheetInfo info {};
-        info.index  = space->GetSheet();
+        info.index  = space->GetSheetIndex();
         info.top    = space->GetTop();
         info.left   = space->GetLeft();
         info.right  = space->GetRight();
@@ -113,43 +144,22 @@ GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
 
 const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 {
+    LOG("Glyph: %lu", glyph);
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph));
 
     auto width  = data->GetWidth();
     auto height = data->GetHeight();
-
+    LOG("Dimensions: %dx%d", width, height);
     Glyph _glyph {};
+
     _glyph.texture = nullptr;
     _glyph.spacing = std::floor(data->GetAdvance() / 1.5f);
     std::fill_n(_glyph.vertices, 4, vertex::Vertex {});
 
     if (width > 0 && height > 0)
     {
-        _glyph.sheet = data->GetSheet();
-        if (this->textures.find(_glyph.sheet) == this->textures.end())
-            this->textures[_glyph.sheet] = std::make_shared<C3D_Tex>();
-
-        _glyph.texture = this->textures[_glyph.sheet].get();
-
-        if (!_glyph.texture)
-            throw love::Exception("Failed to allocate texture");
-
-        TGLP_s* info = fontGetGlyphInfo(this->rasterizers[0]->GetFont());
-
-        const auto MIN_MAG =
-            GPU_TEXTURE_MAG_FILTER(GPU_LINEAR) | GPU_TEXTURE_MIN_FILTER(GPU_LINEAR);
-
-        const auto WRAP =
-            GPU_TEXTURE_WRAP_S(GPU_CLAMP_TO_BORDER) | GPU_TEXTURE_WRAP_T(GPU_CLAMP_TO_BORDER);
-
-        _glyph.texture->data  = fontGetGlyphSheetTex(this->rasterizers[0]->GetFont(), _glyph.sheet);
-        _glyph.texture->fmt   = (GPU_TEXCOLOR)info->sheetFmt;
-        _glyph.texture->size  = info->sheetSize;
-        _glyph.texture->width = info->sheetWidth;
-        _glyph.texture->height   = info->sheetHeight;
-        _glyph.texture->param    = MIN_MAG | WRAP;
-        _glyph.texture->border   = 0;
-        _glyph.texture->lodParam = 0;
+        _glyph.sheet   = data->GetSheetIndex();
+        _glyph.texture = this->textures[_glyph.sheet];
 
         const auto offset = 1.0f;
         const auto color  = Color(Color::WHITE).array();
@@ -159,13 +169,19 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
         const auto right  = data->GetRight();
         const auto bottom = data->GetBottom();
 
+        LOG("Top-Left: %f, %f", left, top);
+        LOG("Bottom Left: %f, %f", right, top);
+        LOG("Bottom Right: %f, %f", left, bottom);
+        LOG("Top Right: %f, %f", right, top);
+
         // clang-format off
-        const vertex::Vertex vertices[0x04] = {
+        const vertex::Vertex vertices[0x04] = 
+        {
              /* x                y                  z                u      v      */
             {{ -offset,          -offset,           0.0f }, color, { left,  top    }},
-            {{ -offset,          (height + offset), 0.0f }, color, { left,  bottom }},
-            {{ (width + offset), (height + offset), 0.0f }, color, { right, bottom }},
-            {{ (width + offset), -offset,           0.0f }, color, { right, top    }}
+            {{ -offset,          (height + offset), 0.0f }, color, { right, top    }},
+            {{ (width + offset), (height + offset), 0.0f }, color, { left,  bottom }},
+            {{ (width + offset), -offset,           0.0f }, color, { right, bottom }}
         };
         // clang-format on
 
@@ -194,10 +210,7 @@ const Font::Glyph& Font::FindGlyph(uint32_t glyph)
 
 static bool drawSort(const Font::DrawCommand& a, const Font::DrawCommand& b)
 {
-    if (a.sheet < b.sheet)
-        return a.sheet < b.sheet;
-    else
-        return a.start < b.start;
+    return a.sheet < b.sheet;
 }
 
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& text,
@@ -319,7 +332,7 @@ void Font::Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& 
     Font::GetCodepointsFromString(text, codepoints);
 
     std::vector<vertex::Vertex> vertices {};
-    auto commands = this->GenerateVertices(codepoints, color, vertices);
+    const auto& commands = this->GenerateVertices(codepoints, color, vertices);
 
     this->Render(graphics, transform, commands, vertices);
 }
@@ -339,10 +352,10 @@ void Font::Render(Graphics& graphics, const Matrix4& matrix,
     for (const auto& command : commands)
     {
         love::DrawCommand drawCommand(command.count);
-        drawCommand.texture = command.texture;
+        drawCommand.handles = { command.texture };
 
-        translated.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
-                                   command.count);
+        translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
+                               command.count);
 
         drawCommand.FillVertices(vertices.data());
         Renderer::Instance().Render(drawCommand);

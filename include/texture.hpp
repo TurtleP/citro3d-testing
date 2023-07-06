@@ -4,16 +4,19 @@
 #include <tex3ds.h>
 
 #include "graphics.hpp"
+#include "object.hpp"
 #include "quad.hpp"
 
 namespace love
 {
-    class Texture
+    class Texture : public Object
     {
       public:
         Texture(const std::string& path);
 
         void Draw(Graphics& graphics, const Matrix4& matrix);
+
+        static inline Type type = Type("Texture", &Object::type);
 
         C3D_Tex* GetTexture()
         {

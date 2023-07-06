@@ -5,6 +5,7 @@
 #include "color.hpp"
 #include "drawcommand.hpp"
 #include "font.hpp"
+#include "fontmodule.hpp"
 #include "framebuffer.hpp"
 #include "graphics.hpp"
 #include "logfile.hpp"
@@ -24,6 +25,8 @@
 #include <unistd.h>
 #include <vector>
 
+using namespace love;
+
 int main(int argc, char** argv)
 {
     love::Renderer::Instance();
@@ -35,14 +38,11 @@ int main(int argc, char** argv)
         return 0;
 
     for (size_t index = 0; index < love::Shader::STANDARD_MAX_ENUM; index++)
-        love::Shader::defaults[index] = new love::Shader();
+        Shader::defaults[index] = new love::Shader();
 
-    auto clearColor        = Color { 0, 0, 0, 1 };
-    const auto pacmanColor = Color { 1, 1, 0, 1 };
+    auto clearColor = Color { 0, 0, 0, 1 };
 
     consoleInit(GFX_BOTTOM, NULL);
-
-    const auto pacmanMouth = M_TAU / 12;
 
     char cwd_tmp[PATH_MAX] {};
     std::string cwd {};
@@ -50,24 +50,21 @@ int main(int argc, char** argv)
     if (getcwd(cwd_tmp, PATH_MAX))
         cwd = cwd_tmp;
 
-    love::StrongReference<love::Rasterizer> rasterizer(new love::Rasterizer(CFG_REGION_USA, 16.0f),
-                                                       love::Acquire::NORETAIN);
+    auto& instance = love::FontModule::Instance();
+    StrongReference<Rasterizer> rasterizer(instance.NewRasterizer(16.0f), Acquire::NORETAIN);
 
     auto* font              = new love::Font(rasterizer.Get());
     const auto textPosition = love::Matrix4(200, 120, 0, 1, 1, 0, 0, 0, 0);
 
-    love::Font::ColoredStrings strings {};
-
     love::Font::ColoredString hello {};
     hello.string = "Hello";
-    hello.color  = Color(1, 0, 0, 1);
+    hello.color  = Color(1, 1, 1, 1);
 
     love::Font::ColoredString world {};
     world.string = " World!";
-    world.color  = Color(0, 1, 0, 1);
+    world.color  = Color(1, 1, 1, 1);
 
-    strings.push_back(hello);
-    strings.push_back(world);
+    love::Font::ColoredStrings strings = { hello, world };
 
     while (aptMainLoop())
     {
@@ -87,15 +84,11 @@ int main(int argc, char** argv)
         love::Renderer::Instance().BindFramebuffer();
         love::Renderer::Instance().Clear(clearColor);
 
-        font->Print(love::Graphics::Instance(), strings, textPosition, { 1, 1, 1, 1 });
+        love::Graphics::Instance().Print(strings, font, textPosition);
 
         love::Renderer::Instance().Present();
     }
 
-    delete texture;
-    delete font;
-
     cfguExit();
-
     romfsExit();
 }

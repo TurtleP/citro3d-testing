@@ -2,6 +2,9 @@
 
 #include <citro3d.h>
 
+#include "vector.hpp"
+#include "vertex.hpp"
+
 namespace love
 {
     class Matrix4
@@ -91,8 +94,7 @@ namespace love
         template<typename Vdst, typename Vsrc>
         void TransformXY(Vdst* dst, const Vsrc* src, int size) const;
 
-        template<typename Vdst, typename Vsrc>
-        void TransformXYVert(Vdst* dst, const Vsrc* src, int size) const;
+        void TransformXY(Vector2* dst, const vertex::Vertex* src, int size) const;
 
         /**
          * Transforms an array of 2-component vertices by this Matrix, and stores
@@ -124,17 +126,16 @@ namespace love
         }
     }
 
-    template<typename Vdst, typename Vsrc>
-    void Matrix4::TransformXYVert(Vdst* dst, const Vsrc* src, int size) const
+    inline void Matrix4::TransformXY(Vector2* dst, const vertex::Vertex* src, int size) const
     {
         for (int i = 0; i < size; i++)
         {
             // Store in temp variables in case src = dst
-            float x = (this->matrix.r[0].x * src[i].position[0]) +
-                      (this->matrix.r[0].y * src[i].position[1]) + (0) + (this->matrix.r[0].w);
 
-            float y = (this->matrix.r[1].x * src[i].position[0]) +
-                      (this->matrix.r[1].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
+            // clang-format off
+            float x = (this->matrix.r[0].x * src[i].position[0]) + (this->matrix.r[0].y * src[i].position[1]) + (0) + (this->matrix.r[0].w);
+            float y = (this->matrix.r[1].x * src[i].position[0]) + (this->matrix.r[1].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
+            //clang-format on
 
             dst[i].x = x;
             dst[i].y = y;

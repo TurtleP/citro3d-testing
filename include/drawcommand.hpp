@@ -29,7 +29,7 @@ namespace love
             positions {},
             count(vertexCount),
             size(vertexCount * vertex::VERTEX_SIZE),
-            texture(nullptr),
+            handles { nullptr },
             texEnvMode(TEXENV_MODE_MAX_ENUM)
         {
             try
@@ -87,6 +87,8 @@ namespace love
                 };
                 // clang-format on
             }
+
+            this->buffer->FlushDataCache();
         }
 
         void FillVertices(const vertex::Vertex* data)
@@ -139,17 +141,16 @@ namespace love
         size_t count;
         size_t size;
 
-        C3D_Tex* texture;
+        std::vector<C3D_Tex*> handles;
 
         std::shared_ptr<DrawBuffer> buffer;
 
       private:
         TEXENV_MODE texEnvMode;
-        void* indicies;
 
         void SetTexEnv(TEXENV_MODE mode)
         {
-            if (mode == this->texEnvMode)
+            if (this->texEnvMode == mode)
                 return;
 
             C3D_TexEnv* env = C3D_GetTexEnv(0);

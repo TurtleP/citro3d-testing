@@ -71,7 +71,7 @@ void Texture::Draw(Graphics& graphics, const Matrix4& matrix)
     Matrix4 translated(transform, matrix);
 
     DrawCommand command(4);
-    command.texture = this->texture;
+    command.handles = { this->texture };
 
     if (is2D)
         translated.TransformXY(command.Positions().get(), this->quad->GetVertices(), command.count);

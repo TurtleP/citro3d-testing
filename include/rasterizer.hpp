@@ -41,7 +41,7 @@ namespace love
 
         Rasterizer(CFG_Region region, int size);
 
-        ~Rasterizer();
+        virtual ~Rasterizer();
 
         GlyphData* GetGlyphData(uint32_t glyph) const;
 

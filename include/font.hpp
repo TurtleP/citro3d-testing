@@ -2,6 +2,7 @@
 
 #include "color.hpp"
 #include "matrix.hpp"
+#include "object.hpp"
 #include "rasterizer.hpp"
 #include "strongreference.hpp"
 #include "vertex.hpp"
@@ -15,7 +16,7 @@ namespace love
 {
     class Graphics;
 
-    class Font
+    class Font : public Object
     {
       public:
         enum AlignMode
@@ -45,6 +46,8 @@ namespace love
             int index;
         };
 
+        static inline Type type = Type("Font", &Object::type);
+
         using Codepoints = std::vector<uint32_t>;
 
         struct ColoredCodepoints
@@ -72,6 +75,12 @@ namespace love
         using ColoredStrings = std::vector<ColoredString>;
 
         Font(Rasterizer* rasterizer);
+
+        virtual ~Font()
+        {
+            this->glyphs.clear();
+            this->textures.clear();
+        }
 
         void Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& transform,
                    const Color& color);
@@ -115,7 +124,7 @@ namespace love
                     const std::vector<vertex::Vertex>& vertices);
 
         std::vector<StrongReference<Rasterizer>> rasterizers;
-        std::unordered_map<uint32_t, std::shared_ptr<C3D_Tex>> textures;
+        std::unordered_map<uint32_t, C3D_Tex*> textures;
 
         bool LoadVolatile();
 
@@ -125,5 +134,6 @@ namespace love
         bool useSpacesAsTab;
         float scale;
         std::unordered_map<uint32_t, Glyph> glyphs;
+        bool inited;
     };
 } // namespace love

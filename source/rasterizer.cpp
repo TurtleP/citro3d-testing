@@ -42,7 +42,8 @@ GlyphData* Rasterizer::GetGlyphData(uint32_t glyph) const
     metrics.bearingY = this->metrics.ascent;
 
     GlyphData::GlyphSheetInfo info {};
-    info.index  = out.sheetIndex;
+    info.index = out.sheetIndex;
+
     info.top    = out.texcoord.top;
     info.left   = out.texcoord.left;
     info.right  = out.texcoord.right;
