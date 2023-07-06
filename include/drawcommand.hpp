@@ -5,6 +5,7 @@
 #include "buffer.hpp"
 #include "color.hpp"
 #include "exception.hpp"
+#include "logfile.hpp"
 #include "texture.hpp"
 #include "vertex.hpp"
 
@@ -29,8 +30,7 @@ namespace love
             positions {},
             count(vertexCount),
             size(vertexCount * vertex::VERTEX_SIZE),
-            handles { nullptr },
-            texEnvMode(TEXENV_MODE_MAX_ENUM)
+            handles { nullptr }
         {
             try
             {
@@ -146,11 +146,11 @@ namespace love
         std::shared_ptr<DrawBuffer> buffer;
 
       private:
-        TEXENV_MODE texEnvMode;
+        static inline TEXENV_MODE m_texEnvMode = TEXENV_MODE_MAX_ENUM;
 
         void SetTexEnv(TEXENV_MODE mode)
         {
-            if (this->texEnvMode == mode)
+            if (m_texEnvMode == mode)
                 return;
 
             C3D_TexEnv* env = C3D_GetTexEnv(0);
@@ -187,7 +187,7 @@ namespace love
                     throw love::Exception("Not allowed.");
             }
 
-            this->texEnvMode = mode;
+            m_texEnvMode = mode;
         }
     };
 } // namespace love
