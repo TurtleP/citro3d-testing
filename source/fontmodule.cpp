@@ -47,6 +47,9 @@ static CFNT_s* loadFromArchive(uint64_t title, const char* path)
         throw love::Exception("Not enough memory.");
     }
 
+    std::fread(fontData.get(), 1, size, file);
+    std::fclose(file);
+
     romfsUnmount("font");
 
     uint32_t fontSize = *(uint32_t*)fontData.get() >> 0x08;
@@ -90,7 +93,10 @@ CFNT_s* FontModule::LoadSystemFont(CFG_Region region)
         svcBreak(USERBREAK_PANIC);
 
     if (R_FAILED(result) || index == getFontIndex((CFG_Region)systemRegion))
-        return fontGetSystemFont(); // calls fontEnsureMapped
+    {
+        fontEnsureMapped();
+        return NULL;
+    }
 
     return loadFromArchive(FontModule::FONT_ARCHIVE | (index << 8), fontPaths[index]);
 }
