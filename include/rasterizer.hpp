@@ -45,7 +45,13 @@ namespace love
 
         GlyphData* GetGlyphData(uint32_t glyph) const;
 
+        GlyphData* GetGlyphData(std::string_view text) const;
+
         const bool HasGlyph(uint32_t glyph) const;
+
+        const bool HasGlyphs(std::string_view text) const;
+
+        const float GetKerning(uint32_t left, uint32_t right) const;
 
       private:
         int glyphCount;

@@ -84,6 +84,7 @@ int main(int argc, char** argv)
         love::Renderer::Instance().BindFramebuffer();
         love::Renderer::Instance().Clear(clearColor);
 
+        love::Graphics::Instance().SetColor({ 1, 1, 1, 1 });
         love::Graphics::Instance().Print(strings, font, textPosition);
 
         love::Renderer::Instance().Present();

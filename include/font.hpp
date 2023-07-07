@@ -95,6 +95,11 @@ namespace love
             return 1.0f;
         }
 
+        const float GetKerning(uint32_t left, uint32_t right) const
+        {
+            return 0.0f;
+        }
+
       private:
         static constexpr uint32_t TAB_GLYPH      = 9;
         static constexpr uint32_t SPACE_GLYPH    = 32;
@@ -124,7 +129,7 @@ namespace love
                     const std::vector<vertex::Vertex>& vertices);
 
         std::vector<StrongReference<Rasterizer>> rasterizers;
-        std::unordered_map<uint32_t, std::shared_ptr<C3D_Tex>> textures;
+        std::vector<std::shared_ptr<C3D_Tex>> textures;
 
         bool LoadVolatile();
 

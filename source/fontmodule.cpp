@@ -89,14 +89,8 @@ CFNT_s* FontModule::LoadSystemFont(CFG_Region region)
 
     Result result = CFGU_SecureInfoGetRegion(&systemRegion);
 
-    if (R_FAILED(fontEnsureMapped()))
-        svcBreak(USERBREAK_PANIC);
-
     if (R_FAILED(result) || index == getFontIndex((CFG_Region)systemRegion))
-    {
-        fontEnsureMapped();
-        return NULL;
-    }
+        return fontGetSystemFont();
 
     return loadFromArchive(FontModule::FONT_ARCHIVE | (index << 8), fontPaths[index]);
 }

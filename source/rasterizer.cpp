@@ -1,6 +1,7 @@
 #include "rasterizer.hpp"
 #include "fontmodule.hpp"
 
+#include "exception.hpp"
 #include "logfile.hpp"
 
 using namespace love;
@@ -52,10 +53,57 @@ GlyphData* Rasterizer::GetGlyphData(uint32_t glyph) const
     return new GlyphData(glyph, metrics, info);
 }
 
+GlyphData* Rasterizer::GetGlyphData(std::string_view text) const
+{
+    uint32_t codepoint = 0;
+
+    try
+    {
+        codepoint = utf8::peek_next(text.begin(), text.end());
+    }
+    catch (utf8::exception& e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
+    }
+
+    return this->GetGlyphData(codepoint);
+}
+
 const bool Rasterizer::HasGlyph(uint32_t glyph) const
 {
     int index        = fontGlyphIndexFromCodePoint(this->face, glyph);
     const auto* info = fontGetInfo(this->face);
 
     return index != info->alterCharIndex;
+}
+
+const bool Rasterizer::HasGlyphs(std::string_view text) const
+{
+    if (text.size() == 0)
+        return false;
+
+    try
+    {
+        Utf8Iterator start(text.begin(), text.begin(), text.end());
+        Utf8Iterator end(text.end(), text.begin(), text.end());
+
+        while (start != end)
+        {
+            uint32_t codepoint = *start++;
+
+            if (!this->HasGlyph(codepoint))
+                return false;
+        }
+    }
+    catch (utf8::exception& e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
+    }
+
+    return true;
+}
+
+const float Rasterizer::GetKerning(uint32_t, uint32_t) const
+{
+    return 0.0f;
 }

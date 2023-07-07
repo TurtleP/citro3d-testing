@@ -49,10 +49,10 @@ void Font::CreateTexture()
 
     for (size_t index = 0; index < glyphInfo->nSheets; index++)
     {
-        this->textures.emplace(index, std::make_shared<C3D_Tex>());
+        this->textures.push_back(std::make_shared<C3D_Tex>());
 
         C3D_Tex* texture  = this->textures[index].get();
-        texture->data     = fontGetGlyphSheetTex(font, index);
+        texture->data     = &glyphInfo->sheetData[index];
         texture->fmt      = (GPU_TEXCOLOR)glyphInfo->sheetFmt;
         texture->size     = glyphInfo->sheetSize;
         texture->width    = glyphInfo->sheetWidth;
@@ -147,8 +147,8 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 {
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph));
 
-    auto width  = data->GetWidth();
-    auto height = data->GetHeight();
+    auto width  = (float)data->GetWidth();
+    auto height = (float)data->GetHeight();
 
     Glyph _glyph {};
 
@@ -172,11 +172,11 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
         // clang-format off
         const std::array<Vertex, 0x04> vertices = 
         {
-            /*        x                 y                  z                u      v      */
-            Vertex {{ -offset,          -offset,           0.0f }, color, { left,  top    }},
-            Vertex {{ -offset,          (height + offset), 0.0f }, color, { right, top    }},
-            Vertex {{ (width + offset), (height + offset), 0.0f }, color, { left,  bottom }},
-            Vertex {{ (width + offset), -offset,           0.0f }, color, { right, bottom }}
+            /*        x        y       z                u      v      */
+            Vertex {{ 0,       0,      0.0f }, color, { left,  top       }},
+            Vertex {{ 0,       height, 0.0f }, color, { left,  bottom    }},
+            Vertex {{ width,   height, 0.0f }, color, { right, bottom    }},
+            Vertex {{ width,   0,      0.0f }, color, { right, top       }}
         };
         // clang-format on
 
@@ -268,7 +268,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
             continue;
 
         const auto& glyphData = this->FindGlyph(glyph);
-        dx += 0; /* this->GetKerning - no kerning on 3DS fonts */
+        dx += this->GetKerning(previousGlyph, glyph);
 
         if (glyphData.texture != nullptr)
         {
@@ -344,15 +344,23 @@ void Font::Render(Graphics& graphics, const Matrix4& matrix,
 
     Matrix4 translated(transform, matrix);
 
-    for (const auto& command : commands)
-    {
-        love::DrawCommand drawCommand(command.count);
-        drawCommand.handles = { command.texture };
+    love::DrawCommand cmd(commands[0].count);
+    cmd.handles = { commands[0].texture };
 
-        translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
-                               command.count);
+    translated.TransformXY(cmd.Positions().get(), &vertices[commands[0].start], cmd.count);
+    cmd.FillVertices(vertices.data());
 
-        drawCommand.FillVertices(vertices.data());
-        Renderer::Instance().Render(drawCommand);
-    }
+    Renderer::Instance().Render(cmd);
+
+    // for (const auto& command : commands)
+    // {
+    //     love::DrawCommand drawCommand(command.count);
+    //     drawCommand.handles = { command.texture };
+
+    //     translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
+    //                            command.count);
+
+    //     drawCommand.FillVertices(vertices.data());
+    //     Renderer::Instance().Render(drawCommand);
+    // }
 }
