@@ -129,7 +129,7 @@ namespace love
                     const std::vector<vertex::Vertex>& vertices);
 
         std::vector<StrongReference<Rasterizer>> rasterizers;
-        std::vector<std::shared_ptr<C3D_Tex>> textures;
+        std::vector<C3D_Tex> textures;
 
         bool LoadVolatile();
 

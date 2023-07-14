@@ -74,7 +74,7 @@ bool Renderer::Render(DrawCommand& command)
 {
     love::Shader::defaults[love::Shader::STANDARD_DEFAULT]->Attach();
 
-    if (!command.buffer->IsValid())
+    if (!command.buffer->IsValid() || command.count <= 0)
         return false;
 
     this->current->UpdateProjection(Shader::current->GetUniformLocations());

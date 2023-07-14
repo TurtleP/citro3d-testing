@@ -177,6 +177,7 @@ namespace love
                     C3D_TexEnvSrc(env, C3D_RGB, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR,
                                   GPU_PRIMARY_COLOR);
                     C3D_TexEnvFunc(env, C3D_RGB, GPU_REPLACE);
+
                     C3D_TexEnvSrc(env, C3D_Alpha, GPU_PRIMARY_COLOR, GPU_TEXTURE0,
                                   GPU_PRIMARY_COLOR);
                     C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);

@@ -49,10 +49,10 @@ void Font::CreateTexture()
 
     for (size_t index = 0; index < glyphInfo->nSheets; index++)
     {
-        this->textures.push_back(std::make_shared<C3D_Tex>());
+        this->textures.push_back(C3D_Tex {});
 
-        C3D_Tex* texture  = this->textures[index].get();
-        texture->data     = &glyphInfo->sheetData[index];
+        C3D_Tex* texture  = &this->textures[index];
+        texture->data     = fontGetGlyphSheetTex(font, index);
         texture->fmt      = (GPU_TEXCOLOR)glyphInfo->sheetFmt;
         texture->size     = glyphInfo->sheetSize;
         texture->width    = glyphInfo->sheetWidth;
@@ -159,7 +159,7 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
     if (width > 0 && height > 0)
     {
         _glyph.sheet   = data->GetSheetIndex();
-        _glyph.texture = this->textures[_glyph.sheet].get();
+        _glyph.texture = &this->textures[_glyph.sheet];
 
         const auto offset = 1.0f;
         const auto color  = Color(Color::WHITE).array();
@@ -344,23 +344,23 @@ void Font::Render(Graphics& graphics, const Matrix4& matrix,
 
     Matrix4 translated(transform, matrix);
 
-    love::DrawCommand cmd(commands[0].count);
-    cmd.handles = { commands[0].texture };
+    // love::DrawCommand cmd(commands[0].count);
+    // cmd.handles = { commands[0].texture };
 
-    translated.TransformXY(cmd.Positions().get(), &vertices[commands[0].start], cmd.count);
-    cmd.FillVertices(vertices.data());
+    // translated.TransformXY(cmd.Positions().get(), &vertices[commands[0].start], cmd.count);
+    // cmd.FillVertices(vertices.data());
 
-    Renderer::Instance().Render(cmd);
+    // Renderer::Instance().Render(cmd);
 
-    // for (const auto& command : commands)
-    // {
-    //     love::DrawCommand drawCommand(command.count);
-    //     drawCommand.handles = { command.texture };
+    for (const auto& command : commands)
+    {
+        love::DrawCommand drawCommand(command.count);
+        drawCommand.handles = { command.texture };
 
-    //     translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
-    //                            command.count);
+        translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
+                               command.count);
 
-    //     drawCommand.FillVertices(vertices.data());
-    //     Renderer::Instance().Render(drawCommand);
-    // }
+        drawCommand.FillVertices(vertices.data());
+        Renderer::Instance().Render(drawCommand);
+    }
 }
