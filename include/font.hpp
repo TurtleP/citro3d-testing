@@ -60,7 +60,7 @@ namespace love
         {
             C3D_Tex* texture;
             int spacing;
-            std::array<vertex::Vertex, 0x04> vertices;
+            std::array<vertex::Vertex, 0x06> vertices;
             int sheet;
         };
 

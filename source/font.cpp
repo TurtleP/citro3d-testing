@@ -154,7 +154,7 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 
     _glyph.texture = nullptr;
     _glyph.spacing = std::floor(data->GetAdvance() / 1.5f);
-    std::fill_n(_glyph.vertices.data(), 4, vertex::Vertex {});
+    std::fill_n(_glyph.vertices.data(), 6, vertex::Vertex {});
 
     if (width > 0 && height > 0)
     {
@@ -170,17 +170,19 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
         const auto bottom = data->GetBottom();
 
         // clang-format off
-        const std::array<Vertex, 0x04> vertices = 
+        const std::array<Vertex, 0x06> vertices = 
         {
             /*        x        y       z                u      v      */
             Vertex {{ 0,       0,      0.0f }, color, { left,  top       }},
             Vertex {{ 0,       height, 0.0f }, color, { left,  bottom    }},
             Vertex {{ width,   height, 0.0f }, color, { right, bottom    }},
-            Vertex {{ width,   0,      0.0f }, color, { right, top       }}
+            Vertex {{ width,   height, 0.0f }, color, { right, bottom    }},
+            Vertex {{ width,   0,      0.0f }, color, { right, top       }},
+            Vertex {{ 0,       0,      0.0f }, color, { left,  top       }}
         };
         // clang-format on
 
-        for (size_t index = 0; index < 0x04; index++)
+        for (size_t index = 0; index < 0x06; index++)
         {
             _glyph.vertices[index] = vertices[index];
 
@@ -224,7 +226,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
 
     /* reserve max possible vertex size */
     size_t startSize = vertices.size();
-    vertices.reserve(startSize + text.codepoints.size() * 4);
+    vertices.reserve(startSize + text.codepoints.size() * 6);
 
     uint32_t previousGlyph = 0;
     Color currentColor     = constantColor;
@@ -272,19 +274,18 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
 
         if (glyphData.texture != nullptr)
         {
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < 0x06; j++)
             {
                 vertices.push_back(glyphData.vertices[j]);
-
                 vertices.back().position[0] += dx;
                 vertices.back().position[1] += dy + heightOffset;
                 vertices.back().color = currentColor.array();
             }
 
-            if (commands.empty() || commands.back().texture != glyphData.texture)
+            if (commands.empty() || commands.back().sheet != glyphData.sheet)
             {
                 DrawCommand command {};
-                command.start   = (int)vertices.size() - 4;
+                command.start   = (int)vertices.size() - 6;
                 command.count   = 0;
                 command.texture = glyphData.texture;
                 command.sheet   = glyphData.sheet;
@@ -292,7 +293,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
                 commands.push_back(command);
             }
 
-            commands.back().count += 4;
+            commands.back().count += 6;
         }
 
         /* advance the x position */
@@ -304,7 +305,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
         previousGlyph = glyph;
     }
 
-    std::sort(commands.begin(), commands.end(), drawSort);
+    // std::sort(commands.begin(), commands.end(), drawSort);
 
     if (dx > maxWidth)
         maxWidth = (int)dx;
@@ -344,17 +345,9 @@ void Font::Render(Graphics& graphics, const Matrix4& matrix,
 
     Matrix4 translated(transform, matrix);
 
-    // love::DrawCommand cmd(commands[0].count);
-    // cmd.handles = { commands[0].texture };
-
-    // translated.TransformXY(cmd.Positions().get(), &vertices[commands[0].start], cmd.count);
-    // cmd.FillVertices(vertices.data());
-
-    // Renderer::Instance().Render(cmd);
-
     for (const auto& command : commands)
     {
-        love::DrawCommand drawCommand(command.count);
+        love::DrawCommand drawCommand(command.count, vertex::PRIMITIVE_TRIANGLES);
         drawCommand.handles = { command.texture };
 
         translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
