@@ -23,6 +23,7 @@ GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, GlyphSheetInfo info) 
 GlyphData::GlyphData(const GlyphData& other) :
     glyph(other.glyph),
     metrics(other.metrics),
+    sheetInfo(other.sheetInfo),
     data(nullptr),
     format(other.format)
 {}
