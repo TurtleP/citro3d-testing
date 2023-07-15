@@ -293,3 +293,16 @@ void Graphics::Print(const Font::ColoredStrings& strings, const Matrix4& matrix)
 {
     this->Print(strings, this->state.back().font.Get(), matrix);
 }
+
+void Graphics::Printf(const Font::ColoredStrings& strings, float wrap, Font::AlignMode align,
+                      const Matrix4& matrix)
+{
+    if (this->state.back().font.Get() != nullptr)
+        this->Printf(strings, this->state.back().font.Get(), wrap, align, matrix);
+}
+
+void Graphics::Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
+                      Font::AlignMode align, const Matrix4& matrix)
+{
+    font->Printf(*this, strings, wrap, align, matrix, this->state.back().foreground);
+}

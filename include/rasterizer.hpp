@@ -29,6 +29,11 @@ namespace love
             return this->metrics.height;
         }
 
+        float GetAscent() const
+        {
+            return this->metrics.ascent;
+        }
+
         CFNT_s* GetFont() const
         {
             return this->face;

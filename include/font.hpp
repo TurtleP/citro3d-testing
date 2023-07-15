@@ -85,13 +85,37 @@ namespace love
         void Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& transform,
                    const Color& color);
 
+        void Printf(Graphics& graphics, const ColoredStrings& text, float wrap, AlignMode alignment,
+                    const Matrix4& matrix, const Color& color);
+
         int GetWidth(std::string_view text);
 
         int GetWidth(uint32_t glyph);
 
+        void GetWrap(const std::vector<ColoredString>& text, float wraplimit,
+                     std::vector<std::string>& lines, std::vector<int>* line_widths = nullptr);
+
+        void GetWrap(const ColoredCodepoints& codepoints, float wraplimit,
+                     std::vector<ColoredCodepoints>& lines, std::vector<int>* linewidths = nullptr);
+
         const float GetHeight() const
         {
             return this->height;
+        }
+
+        int GetAscent() const
+        {
+            return floorf(rasterizers[0]->GetAscent() + 0.5f);
+        }
+
+        const float GetBaseline()
+        {
+            float ascent = this->GetAscent();
+
+            if (ascent != 0.0f)
+                return ascent;
+
+            return 0.0f;
         }
 
         const float GetLineHeight() const
@@ -125,6 +149,12 @@ namespace love
                                                   std::vector<vertex::Vertex>& vertices,
                                                   float extraSpacing = 0.0f, Vector2 offset = {},
                                                   TextInfo* info = nullptr);
+
+        std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
+                                                           const Color& color, float wrap,
+                                                           AlignMode align,
+                                                           std::vector<vertex::Vertex>& vertices,
+                                                           TextInfo* info = nullptr);
 
         const Glyph& FindGlyph(uint32_t glyph);
 

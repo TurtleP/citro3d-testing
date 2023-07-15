@@ -292,7 +292,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
     float dx = offset.x;
     float dy = offset.y;
 
-    float heightOffset = 0.0f;
+    float heightOffset = -this->GetBaseline();
 
     int maxWidth = 0;
     std::vector<DrawCommand> commands {};
@@ -394,6 +394,277 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
     return commands;
 }
 
+void Font::GetWrap(const std::vector<ColoredString>& text, float wraplimit,
+                   std::vector<std::string>& lines, std::vector<int>* lineWidths)
+{
+    ColoredCodepoints codepoints {};
+    Font::GetCodepointsFromString(text, codepoints);
+
+    std::vector<ColoredCodepoints> codepointLines {};
+    this->GetWrap(codepoints, wraplimit, codepointLines, lineWidths);
+
+    std::string line;
+
+    for (const ColoredCodepoints& codepoints : codepointLines)
+    {
+        line.clear();
+        line.reserve(codepoints.codepoints.size());
+
+        for (uint32_t codepoint : codepoints.codepoints)
+        {
+            char character[5] = { '\0' };
+            char* end         = utf8::unchecked::append(codepoint, character);
+            line.append(character, end - character);
+        }
+
+        lines.push_back(line);
+    }
+}
+
+void Font::GetWrap(const ColoredCodepoints& codepoints, float wraplimit,
+                   std::vector<ColoredCodepoints>& lines, std::vector<int>* linewidths)
+{
+    float width = 0.0f;
+
+    float widthBeforeLastSpace = 0.0f;
+    float widthOfTrailingSpace = 0.0f;
+
+    uint32_t previous  = 0;
+    int lastSpaceIndex = -1;
+
+    Color currentColor(1.0f, 1.0f, 1.0f, 1.0f);
+    bool addCurrentColor  = false;
+    int currentColorIndex = -1;
+    int endColorIndex     = (int)codepoints.colors.size() - 1;
+
+    ColoredCodepoints wrappedLine {};
+
+    int index = 0;
+    while (index < (int)codepoints.codepoints.size())
+    {
+        uint32_t current = codepoints.codepoints[index];
+
+        /* determine current color */
+        if (currentColorIndex < endColorIndex &&
+            codepoints.colors[currentColorIndex + 1].index == index)
+        {
+            currentColor = codepoints.colors[currentColorIndex + 1].color;
+            currentColorIndex++;
+            addCurrentColor = true;
+        }
+
+        /* split at newlines */
+        if (current == Font::NEWLINE_GLYPH)
+        {
+            lines.push_back(wrappedLine);
+
+            /* ignore width of trailing spaces for individual lines */
+            if (linewidths)
+                linewidths->push_back(width - widthOfTrailingSpace);
+
+            /* keep previously set color */
+            addCurrentColor = true;
+            width = widthBeforeLastSpace = widthOfTrailingSpace = 0.0f;
+
+            previous       = 0;
+            lastSpaceIndex = -1;
+            wrappedLine.codepoints.clear();
+            wrappedLine.colors.clear();
+
+            index++;
+
+            continue;
+        }
+
+        if (current == Font::CARRIAGE_GLYPH)
+        {
+            index++;
+            continue;
+        }
+
+        const auto& glyph = this->FindGlyph(current);
+
+        float charWidth = glyph.spacing + this->GetKerning(previous, current);
+        float newWidth  = width + charWidth;
+
+        /* wrap once we hit the line limit, except on newlines */
+        if (current != Font::SPACE_GLYPH && newWidth > wraplimit)
+        {
+            /* skip the first character in the line if it exceeds the limit */
+            if (wrappedLine.codepoints.empty())
+                index++;
+            else if (lastSpaceIndex != -1)
+            {
+                /* 'rewind' to last seen space, if the line contains one */
+                while (!wrappedLine.codepoints.empty() &&
+                       wrappedLine.codepoints.back() != Font::SPACE_GLYPH)
+                {
+                    wrappedLine.codepoints.pop_back();
+                }
+
+                while (!wrappedLine.colors.empty() &&
+                       wrappedLine.colors.back().index >= (int)wrappedLine.codepoints.size())
+                {
+                    wrappedLine.colors.pop_back();
+                }
+
+                /* 'rewind' to the last color */
+                for (int colorIndex = currentColorIndex; colorIndex >= 0; colorIndex--)
+                {
+                    if (codepoints.colors[colorIndex].index <= lastSpaceIndex)
+                    {
+                        currentColor      = codepoints.colors[colorIndex].color;
+                        currentColorIndex = colorIndex;
+                        break;
+                    }
+                }
+
+                width = widthBeforeLastSpace;
+                index = lastSpaceIndex;
+                index++;
+            }
+
+            lines.push_back(wrappedLine);
+
+            if (linewidths)
+                linewidths->push_back(width);
+
+            addCurrentColor = true;
+            previous        = 0;
+            width = widthBeforeLastSpace = widthOfTrailingSpace = 0.0f;
+
+            wrappedLine.codepoints.clear();
+            wrappedLine.colors.clear();
+            lastSpaceIndex = -1;
+
+            continue;
+        }
+
+        if (previous != Font::SPACE_GLYPH && current == Font::SPACE_GLYPH)
+            widthBeforeLastSpace = width;
+
+        width    = newWidth;
+        previous = current;
+
+        if (addCurrentColor)
+        {
+            wrappedLine.colors.push_back({ currentColor, (int)wrappedLine.codepoints.size() });
+            addCurrentColor = false;
+        }
+
+        wrappedLine.codepoints.push_back(current);
+
+        if (current == Font::SPACE_GLYPH)
+        {
+            lastSpaceIndex       = index;
+            widthOfTrailingSpace = charWidth;
+        }
+        else if (current != Font::NEWLINE_GLYPH)
+            widthOfTrailingSpace = 0.0f;
+
+        index++;
+    }
+
+    lines.push_back(wrappedLine);
+
+    if (linewidths)
+        linewidths->push_back(width - widthOfTrailingSpace);
+}
+
+std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
+    const ColoredCodepoints& text, const Color& constantColor, float wrap, AlignMode align,
+    std::vector<vertex::Vertex>& vertices, TextInfo* info)
+{
+    wrap = std::max(wrap, 0.0f);
+
+    std::vector<DrawCommand> commands;
+    vertices.reserve(text.codepoints.size() * 4);
+
+    std::vector<int> widths;
+    std::vector<ColoredCodepoints> lines;
+
+    this->GetWrap(text, wrap, lines, &widths);
+
+    float y        = 0.0f;
+    float maxWidth = 0.0f;
+
+    for (int index = 0; index < (int)lines.size(); index++)
+    {
+        const auto& line = lines[index];
+
+        float width = (float)widths[index];
+
+        Vector2 offset(0.0f, floorf(y));
+        float extraSpacing = 0.0f;
+
+        maxWidth = std::max(width, maxWidth);
+
+        switch (align)
+        {
+            case ALIGN_RIGHT:
+            {
+                offset.x = floorf(wrap - width);
+                break;
+            }
+            case ALIGN_CENTER:
+            {
+                offset.x = floorf((wrap - width) / 2.0f);
+                break;
+            }
+            case ALIGN_JUSTIFY:
+            {
+                float spaces = std::count(line.codepoints.begin(), line.codepoints.end(), ' ');
+
+                if (width < wrap && spaces >= 1)
+                    extraSpacing = (wrap - width) / spaces;
+                else
+                    extraSpacing = 0.0f;
+
+                break;
+            }
+            case ALIGN_LEFT:
+            default:
+                break;
+        }
+
+        std::vector<DrawCommand> newCommands =
+            this->GenerateVertices(line, constantColor, vertices, extraSpacing, offset);
+
+        if (!newCommands.empty())
+        {
+            auto first = newCommands.begin();
+
+            /*
+            ** if the first draw command has the same texture
+            ** as the last in the existing list and vertices
+            ** are in-order, we can combine them
+            */
+            if (!commands.empty())
+            {
+                auto previous = commands.back();
+
+                size_t total = (previous.start + previous.count);
+                if (previous.texture == first->texture && (int)total == first->start)
+                {
+                    commands.back().count += first->count;
+                    ++first;
+                }
+            }
+
+            commands.insert(commands.end(), first, newCommands.end());
+        }
+        y += this->GetHeight() * this->GetLineHeight();
+    }
+
+    if (info != nullptr)
+    {
+        info->width  = (int)maxWidth;
+        info->height = (int)y;
+    }
+
+    return commands;
+}
+
 void Font::Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& transform,
                  const Color& color)
 {
@@ -404,6 +675,19 @@ void Font::Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& 
     auto commands = this->GenerateVertices(codepoints, color, vertices);
 
     this->Render(graphics, transform, commands, vertices);
+}
+
+void Font::Printf(Graphics& graphics, const ColoredStrings& text, float wrap, AlignMode alignment,
+                  const Matrix4& matrix, const Color& color)
+{
+    ColoredCodepoints codepoints {};
+    Font::GetCodepointsFromString(text, codepoints);
+
+    std::vector<vertex::Vertex> vertices {};
+    std::vector<DrawCommand> commands =
+        this->GenerateVerticesFormatted(codepoints, color, wrap, alignment, vertices);
+
+    this->Render(graphics, matrix, commands, vertices);
 }
 
 void Font::Render(Graphics& graphics, const Matrix4& matrix,

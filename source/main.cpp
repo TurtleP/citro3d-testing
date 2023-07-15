@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     StrongReference<Rasterizer> rasterizer(instance.NewRasterizer(16.0f), Acquire::NORETAIN);
 
     auto* font      = new love::Font(rasterizer.Get());
-    float fontAngle = 0.0f;
+    float textAngle = 0.0f;
 
     love::Font::ColoredString hello {};
     hello.string = "Hello";
@@ -72,11 +72,12 @@ int main(int argc, char** argv)
     const auto SCREEN_WIDTH  = 400;
     const auto SCREEN_HEIGHT = 240;
 
-    const auto FONT_WIDTH  = font->GetWidth("Hello World! *lenny*");
-    const auto FONT_HEIGHT = font->GetHeight();
+    const auto TEXT_WIDTH  = font->GetWidth("Hello World! *lenny*");
+    const auto TEXT_HEIGHT = font->GetHeight();
 
-    const auto textPosition =
-        Vector2((SCREEN_WIDTH - FONT_WIDTH) * 0.5f, (SCREEN_HEIGHT - FONT_HEIGHT) * 0.5);
+    const auto CENTER_POSITION = Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+    const auto textMatrix      = love::Matrix4(CENTER_POSITION.x, CENTER_POSITION.y, 0, 1, 1,
+                                               TEXT_WIDTH / 2, TEXT_HEIGHT / 2, 0, 0);
 
     while (aptMainLoop())
     {
@@ -100,11 +101,17 @@ int main(int argc, char** argv)
 
         love::Graphics::Instance().SetColor({ 1, 1, 1, 1 });
 
-        fontAngle += dt;
-        const auto textMatrix =
-            love::Matrix4(textPosition.x + FONT_WIDTH / 2, textPosition.y + FONT_HEIGHT / 2,
-                          fontAngle, 1, 1, FONT_WIDTH / 2, FONT_HEIGHT / 2, 0, 0);
+        textAngle += dt;
+
+        // love::Graphics::Instance().Push();
+
+        love::Graphics::Instance().Translate(CENTER_POSITION.x, CENTER_POSITION.y);
+        love::Graphics::Instance().Rotate(textAngle);
+        love::Graphics::Instance().Translate(-CENTER_POSITION.x, -CENTER_POSITION.y);
+
         love::Graphics::Instance().Print(strings, font, textMatrix);
+
+        // love::Graphics::Instance().Pop();
 
         love::Renderer::Instance().Present();
 
