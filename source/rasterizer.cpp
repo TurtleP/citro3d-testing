@@ -6,9 +6,25 @@
 
 using namespace love;
 
-Rasterizer::Rasterizer(CFG_Region region, int size) : glyphCount(-1), metrics {}
+Rasterizer::Rasterizer(CFG_Region region, float size) : glyphCount(-1), metrics {}
 {
     this->face = FontModule::LoadSystemFont(region);
+
+    FINF_s* info   = fontGetInfo(this->face);
+    TGLP_s* sheets = info->tglp;
+
+    /* font is 30px tall */
+    this->scale = size / 30.0f;
+
+    this->metrics.advance = sheets->maxCharWidth * this->scale;
+    this->metrics.ascent  = info->ascent * this->scale;
+    this->metrics.descent = (info->height - info->ascent) * this->scale;
+    this->metrics.height  = info->height * this->scale;
+}
+
+Rasterizer::Rasterizer(const void* data, size_t dataSize, float size)
+{
+    this->face = FontModule::LoadFromFile(data, dataSize);
 
     FINF_s* info   = fontGetInfo(this->face);
     TGLP_s* sheets = info->tglp;

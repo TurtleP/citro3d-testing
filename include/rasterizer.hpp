@@ -22,6 +22,12 @@ namespace love
             int height;
         };
 
+        Rasterizer(CFG_Region region, float size);
+
+        Rasterizer(const void* data, size_t dataSize, float size);
+
+        virtual ~Rasterizer();
+
         static inline Type type = Type("Rasterizer", &Object::type);
 
         const float GetHeight() const
@@ -43,10 +49,6 @@ namespace love
         {
             return this->scale;
         }
-
-        Rasterizer(CFG_Region region, int size);
-
-        virtual ~Rasterizer();
 
         GlyphData* GetGlyphData(uint32_t glyph) const;
 

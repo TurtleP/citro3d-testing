@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+#include "logfile.hpp"
+
 namespace love
 {
     class Exception : public std::exception
@@ -24,6 +26,7 @@ namespace love
 
         inline virtual const char* what() const throw()
         {
+            LOG("%s", this->message.c_str());
             return this->message.c_str();
         }
 

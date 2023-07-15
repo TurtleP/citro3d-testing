@@ -95,6 +95,25 @@ CFNT_s* FontModule::LoadSystemFont(CFG_Region region)
     return loadFromArchive(FontModule::FONT_ARCHIVE | (index << 8), fontPaths[index]);
 }
 
+CFNT_s* FontModule::LoadFromFile(const void* data, size_t size)
+{
+    CFNT_s* font = (CFNT_s*)linearAlloc(size);
+
+    if (font != nullptr)
+        std::memcpy((uint8_t*)font, data, size);
+    else
+        throw love::Exception("Failed to allocate font.");
+
+    fontFixPointers(font);
+
+    return font;
+}
+
+Rasterizer* FontModule::NewRasterizer(const void* data, size_t dataSize, float size)
+{
+    return new Rasterizer(data, dataSize, size);
+}
+
 Rasterizer* FontModule::NewRasterizer(float size, CFG_Region region)
 {
     return new Rasterizer(region, size);

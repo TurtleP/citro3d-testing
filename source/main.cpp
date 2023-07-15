@@ -48,31 +48,67 @@ int main(int argc, char** argv)
     consoleInit(GFX_BOTTOM, NULL);
 
     auto& instance = love::FontModule::Instance();
-    StrongReference<Rasterizer> rasterizer(instance.NewRasterizer(16.0f), Acquire::NORETAIN);
+
+    std::unique_ptr<uint8_t[]> fontData;
+    long fileSize = 0;
+
+    std::string directory = std::filesystem::current_path();
+    directory += std::string("coolvetica.bcfnt");
+
+    const char* filepath = directory.c_str();
+    LOG("%s", filepath);
+
+    {
+        FILE* file = std::fopen(filepath, "r");
+
+        if (!file)
+        {
+            std::fclose(file);
+            throw love::Exception("File does not exist.");
+        }
+
+        std::fseek(file, 0, SEEK_END);
+        fileSize = std::ftell(file);
+        std::rewind(file);
+        LOG("%ld", fileSize);
+
+        try
+        {
+            fontData = std::make_unique<uint8_t[]>(fileSize);
+        }
+        catch (std::bad_alloc&)
+        {
+            throw love::Exception("Out of memory.");
+        }
+
+        long read = (long)std::fread(fontData.get(), 1, fileSize, file);
+        LOG("%ld", read);
+        if (read != fileSize)
+        {
+            std::fclose(file);
+            throw love::Exception("Failed to read font");
+        }
+        LOG("!");
+    }
+
+    StrongReference<Rasterizer> rasterizer(instance.NewRasterizer(fontData.get(), fileSize, 30),
+                                           Acquire::NORETAIN);
 
     auto* font      = new love::Font(rasterizer.Get());
     float textAngle = 0.0f;
 
     love::Font::ColoredString hello {};
-    hello.string = "Hello";
+    hello.string = "Hello World!";
     hello.color  = Color(1, 1, 1, 1);
 
-    love::Font::ColoredString world {};
-    world.string = " World!";
-    world.color  = Color(1, 1, 0, 1);
-
-    love::Font::ColoredString lenny {};
-    lenny.string = " *lenny*";
-    lenny.color  = Color(0.45f, 0.07f, 0.12f, 1.0f);
-
-    love::Font::ColoredStrings strings = { hello, world, lenny };
+    love::Font::ColoredStrings strings = { hello };
 
     love::Timer::Instance().Step();
 
     const auto SCREEN_WIDTH  = 400;
     const auto SCREEN_HEIGHT = 240;
 
-    const auto TEXT_WIDTH  = font->GetWidth("Hello World! *lenny*");
+    const auto TEXT_WIDTH  = font->GetWidth(hello.string);
     const auto TEXT_HEIGHT = font->GetHeight();
 
     const auto CENTER_POSITION = Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
