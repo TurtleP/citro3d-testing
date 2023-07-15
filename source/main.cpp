@@ -15,6 +15,7 @@
 #include "shader.hpp"
 #include "strongreference.hpp"
 #include "texture.hpp"
+#include "timer.hpp"
 #include "vector.hpp"
 
 #include <array>
@@ -40,21 +41,17 @@ int main(int argc, char** argv)
     for (size_t index = 0; index < love::Shader::STANDARD_MAX_ENUM; index++)
         Shader::defaults[index] = new love::Shader();
 
-    auto clearColor = Color { 0, 0, 0, 1 };
+    Shader::defaults[Shader::STANDARD_DEFAULT]->Attach();
+
+    auto clearColor = Color { 0.55, 0.45, 0.86, 1.0f };
 
     consoleInit(GFX_BOTTOM, NULL);
-
-    char cwd_tmp[PATH_MAX] {};
-    std::string cwd {};
-
-    if (getcwd(cwd_tmp, PATH_MAX))
-        cwd = cwd_tmp;
 
     auto& instance = love::FontModule::Instance();
     StrongReference<Rasterizer> rasterizer(instance.NewRasterizer(16.0f), Acquire::NORETAIN);
 
-    auto* font              = new love::Font(rasterizer.Get());
-    const auto textPosition = love::Matrix4(200, 120, 0, 1, 1, 0, 0, 0, 0);
+    auto* font      = new love::Font(rasterizer.Get());
+    float fontAngle = 0.0f;
 
     love::Font::ColoredString hello {};
     hello.string = "Hello";
@@ -62,9 +59,24 @@ int main(int argc, char** argv)
 
     love::Font::ColoredString world {};
     world.string = " World!";
-    world.color  = Color(1, 1, 1, 1);
+    world.color  = Color(1, 1, 0, 1);
 
-    love::Font::ColoredStrings strings = { hello, world };
+    love::Font::ColoredString lenny {};
+    lenny.string = " *lenny*";
+    lenny.color  = Color(0.45f, 0.07f, 0.12f, 1.0f);
+
+    love::Font::ColoredStrings strings = { hello, world, lenny };
+
+    love::Timer::Instance().Step();
+
+    const auto SCREEN_WIDTH  = 400;
+    const auto SCREEN_HEIGHT = 240;
+
+    const auto FONT_WIDTH  = font->GetWidth("Hello World! *lenny*");
+    const auto FONT_HEIGHT = font->GetHeight();
+
+    const auto textPosition =
+        Vector2((SCREEN_WIDTH - FONT_WIDTH) * 0.5f, (SCREEN_HEIGHT - FONT_HEIGHT) * 0.5);
 
     while (aptMainLoop())
     {
@@ -77,6 +89,8 @@ int main(int argc, char** argv)
         printf("\x1b[2;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime() * 6.0f);
         printf("\x1b[3;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage() * 100.0f);
 
+        float dt = love::Timer::Instance().Step();
+
         love::Graphics::Instance().Origin();
 
         /* render top screen */
@@ -85,9 +99,16 @@ int main(int argc, char** argv)
         love::Renderer::Instance().Clear(clearColor);
 
         love::Graphics::Instance().SetColor({ 1, 1, 1, 1 });
-        love::Graphics::Instance().Print(strings, font, textPosition);
+
+        fontAngle += dt;
+        const auto textMatrix =
+            love::Matrix4(textPosition.x + FONT_WIDTH / 2, textPosition.y + FONT_HEIGHT / 2,
+                          fontAngle, 1, 1, FONT_WIDTH / 2, FONT_HEIGHT / 2, 0, 0);
+        love::Graphics::Instance().Print(strings, font, textMatrix);
 
         love::Renderer::Instance().Present();
+
+        love::Timer::Instance().Sleep(0.001);
     }
 
     cfguExit();

@@ -4,9 +4,11 @@
 
 #include <citro3d.h>
 
+#include "object.hpp"
+
 namespace love
 {
-    class Shader
+    class Shader : public Object
     {
       public:
         enum StandardShader
@@ -16,6 +18,8 @@ namespace love
         };
 
         static inline Shader* defaults[StandardShader::STANDARD_MAX_ENUM] { nullptr };
+
+        static inline Type type = Type("Shader", &Object::type);
 
         Shader();
 
@@ -35,6 +39,7 @@ namespace love
       private:
         DVLB_s* binary;
         shaderProgram_s program;
+        std::unique_ptr<uint32_t[]> data;
 
         int8_t uLoc_projMtx;
         int8_t uLoc_mdlView;

@@ -32,6 +32,9 @@ namespace love
             size(vertexCount * vertex::VERTEX_SIZE),
             handles { nullptr }
         {
+            if (vertexCount == 0)
+                throw love::Exception("Invalid vertex count.");
+
             try
             {
                 this->positions = std::make_unique<Vector2[]>(vertexCount);
@@ -41,6 +44,9 @@ namespace love
                 throw love::Exception("Out of memory.");
             }
         }
+
+        ~DrawCommand()
+        {}
 
         const std::unique_ptr<Vector2[]>& Positions() const
         {
@@ -52,7 +58,7 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_PRIMITIVE);
 
             this->buffer  = std::make_shared<DrawBuffer>(this->size);
-            auto vertices = this->buffer->GetBuffer();
+            auto vertices = this->buffer->GetData();
 
             for (size_t index = 0; index < this->count; index++)
             {
@@ -74,7 +80,7 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_PRIMITIVE);
 
             this->buffer  = std::make_shared<DrawBuffer>(this->size);
-            auto vertices = this->buffer->GetBuffer();
+            auto vertices = this->buffer->GetData();
 
             for (size_t index = 0; index < this->count; index++)
             {
@@ -96,7 +102,7 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_TEXT);
 
             this->buffer  = std::make_shared<DrawBuffer>(this->size);
-            auto vertices = this->buffer->GetBuffer();
+            auto vertices = this->buffer->GetData();
 
             for (size_t index = 0; index < this->count; index++)
             {
@@ -118,7 +124,7 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_TEXTURE);
 
             this->buffer  = std::make_shared<DrawBuffer>(this->size);
-            auto vertices = this->buffer->GetBuffer();
+            auto vertices = this->buffer->GetData();
 
             for (size_t index = 0; index < this->count; index++)
             {

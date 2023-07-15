@@ -85,6 +85,10 @@ namespace love
         void Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& transform,
                    const Color& color);
 
+        int GetWidth(std::string_view text);
+
+        int GetWidth(uint32_t glyph);
+
         const float GetHeight() const
         {
             return this->height;
@@ -140,5 +144,7 @@ namespace love
         float scale;
         std::unordered_map<uint32_t, Glyph> glyphs;
         bool inited;
+
+        std::unordered_map<uint32_t, float> glyphWidths;
     };
 } // namespace love

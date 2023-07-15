@@ -42,6 +42,8 @@ void Renderer::BindFramebuffer(size_t index)
 
     this->current = &this->framebuffers[index];
     C3D_FrameDrawOn(this->current->GetTarget());
+
+    this->current->UpdateProjection(Shader::current->GetUniformLocations());
 }
 
 void Renderer::Clear(const Color& color)
@@ -72,33 +74,22 @@ bool Renderer::CheckHandle(C3D_Tex* texture)
 
 bool Renderer::Render(DrawCommand& command)
 {
-    LOG("Shader");
     love::Shader::defaults[love::Shader::STANDARD_DEFAULT]->Attach();
 
-    if (!command.buffer->IsValid() || command.count <= 0)
+    if (!command.buffer->IsValid())
         return false;
-
-    LOG("Projection");
-    this->current->UpdateProjection(Shader::current->GetUniformLocations());
 
     if (command.handles.size() > 0)
     {
         if (this->CheckHandle(command.handles.back()))
-        {
-            LOG("Binding Texture");
             C3D_TexBind(0, this->currentTexture);
-        }
     }
 
-    LOG("SetBufferInfo");
-    command.buffer->SetBufferInfo();
-
     auto mode = vertex::GetMode(command.mode);
-    LOG("Mode %zu", mode);
 
+    C3D_SetBufInfo(command.buffer->GetBuffer());
     C3D_DrawArrays(mode, 0, command.count);
 
-    LOG("Keep Alive");
     this->commands.push_back(command.buffer);
 
     return true;

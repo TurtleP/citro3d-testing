@@ -7,24 +7,25 @@
 
 namespace love
 {
+    using namespace vertex;
+
     struct DrawBuffer
     {
       public:
-        DrawBuffer(size_t size) : info {}, data(nullptr), size(size), valid(true)
+        DrawBuffer(size_t size) : info {}, data((Vertex*)linearAlloc(size)), size(size), valid(true)
         {
-            this->data = (vertex::Vertex*)linearAlloc(size);
-
             BufInfo_Init(&this->info);
 
-            int result = BufInfo_Add(&this->info, (void*)this->data, vertex::VERTEX_SIZE, 3, 0x210);
+            int result = BufInfo_Add(&this->info, (void*)this->data, VERTEX_SIZE, 3, 0x210);
 
             if (result < 0)
                 this->valid = false;
         }
 
-        vertex::Vertex* GetBuffer()
+        ~DrawBuffer()
         {
-            return this->data;
+            if (this->data != nullptr)
+                linearFree(this->data);
         }
 
         DrawBuffer(DrawBuffer&&) = delete;
@@ -33,10 +34,14 @@ namespace love
 
         DrawBuffer& operator=(const DrawBuffer&) = delete;
 
-        ~DrawBuffer()
+        Vertex* GetData()
         {
-            if (this->data != nullptr)
-                linearFree(this->data);
+            return this->data;
+        }
+
+        C3D_BufInfo* GetBuffer()
+        {
+            return &this->info;
         }
 
         bool IsValid()
@@ -50,14 +55,6 @@ namespace love
 
             if (R_FAILED(result))
                 this->valid = false;
-        }
-
-        void SetBufferInfo()
-        {
-            if (!this->valid)
-                return;
-
-            C3D_SetBufInfo(&this->info);
         }
 
       private:

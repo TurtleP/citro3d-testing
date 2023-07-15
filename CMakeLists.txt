@@ -79,6 +79,7 @@ source/rasterizer.cpp
 source/renderer.cpp
 source/shader.cpp
 source/texture.cpp
+source/timer.cpp
 source/type.cpp
 )
 

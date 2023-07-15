@@ -11,7 +11,8 @@ using namespace love;
 
 #define DEFAULT_SHADER (SHADERS_DIR "main_v_pica.shbin")
 
-static bool loadShaderFile(const char* filepath, DVLB_s*& program, std::string& error)
+static bool loadShaderFile(const char* filepath, std::unique_ptr<uint32_t[]>& data,
+                           DVLB_s*& program, std::string& error)
 {
     FILE* file = std::fopen(filepath, "r");
 
@@ -22,15 +23,13 @@ static bool loadShaderFile(const char* filepath, DVLB_s*& program, std::string& 
         return false;
     }
 
-    std::unique_ptr<uint32_t[]> data;
-
     std::fseek(file, 0, SEEK_END);
     long size = std::ftell(file);
     std::rewind(file);
 
     try
     {
-        data = std::make_unique<uint32_t[]>(size);
+        data = std::make_unique<uint32_t[]>(size / 4);
     }
     catch (std::bad_alloc&)
     {
@@ -57,8 +56,8 @@ Shader::Shader()
 {
     std::string error {};
 
-    if (!loadShaderFile(DEFAULT_SHADER, this->binary, error))
-        return;
+    if (!loadShaderFile(DEFAULT_SHADER, this->data, this->binary, error))
+        throw love::Exception("Failed to load shader.");
 
     shaderProgramInit(&this->program);
     shaderProgramSetVsh(&this->program, &this->binary->DVLE[0]);

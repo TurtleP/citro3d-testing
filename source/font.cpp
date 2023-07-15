@@ -153,7 +153,7 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
     Glyph _glyph {};
 
     _glyph.texture = nullptr;
-    _glyph.spacing = std::floor(data->GetAdvance() / 1.5f);
+    _glyph.spacing = std::floor(data->GetAdvance());
     std::fill_n(_glyph.vertices.data(), 6, vertex::Vertex {});
 
     if (width > 0 && height > 0)
@@ -208,6 +208,79 @@ const Font::Glyph& Font::FindGlyph(uint32_t glyph)
 static bool drawSort(const Font::DrawCommand& a, const Font::DrawCommand& b)
 {
     return a.sheet < b.sheet;
+}
+
+inline size_t get_line(const std::string_view& string, int start)
+{
+    if (string.empty())
+        return std::string::npos;
+
+    size_t position = 0;
+
+    std::string newline = "";
+    if (string.find("\n") == std::string::npos)
+        newline = "\n";
+
+    if ((position = (std::string(string) + newline).find("\n", start)) != std::string::npos)
+        return position;
+
+    return std::string::npos;
+}
+
+int Font::GetWidth(std::string_view text)
+{
+    if (text.size() == 0)
+        return 0;
+
+    int maxWidth = 0;
+
+    size_t position = 0;
+    int start       = 0;
+
+    while ((position = get_line(text, start)) != std::string::npos)
+    {
+        int width             = 0;
+        std::string_view line = text.substr(start, (position - start));
+
+        try
+        {
+            Utf8Iterator begin(line.begin(), line.begin(), line.end());
+            Utf8Iterator end(line.end(), line.begin(), line.end());
+
+            while (begin != end)
+            {
+                uint32_t codepoint = *begin++;
+
+                if (codepoint == '\r')
+                    continue;
+
+                width += this->GetWidth(codepoint);
+            }
+
+            start += position + 1;
+        }
+        catch (utf8::exception& e)
+        {
+            throw love::Exception("UTF-8 decoding error: %s", e.what());
+        }
+
+        maxWidth = std::max(maxWidth, width);
+    }
+
+    return maxWidth;
+}
+
+int Font::GetWidth(uint32_t glyph)
+{
+    auto found = this->glyphWidths.find(glyph);
+
+    if (found != this->glyphWidths.end())
+        return found->second;
+
+    GlyphData* glyphData     = this->rasterizers[0]->GetGlyphData(glyph);
+    this->glyphWidths[glyph] = glyphData->GetAdvance();
+
+    return this->glyphWidths[glyph];
 }
 
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& text,
@@ -328,7 +401,7 @@ void Font::Print(Graphics& graphics, const ColoredStrings& text, const Matrix4& 
     Font::GetCodepointsFromString(text, codepoints);
 
     std::vector<vertex::Vertex> vertices {};
-    const auto& commands = this->GenerateVertices(codepoints, color, vertices);
+    auto commands = this->GenerateVertices(codepoints, color, vertices);
 
     this->Render(graphics, transform, commands, vertices);
 }
@@ -353,7 +426,7 @@ void Font::Render(Graphics& graphics, const Matrix4& matrix,
         translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
                                command.count);
 
-        drawCommand.FillVertices(vertices.data());
+        drawCommand.FillVertices(&vertices[command.start]);
         Renderer::Instance().Render(drawCommand);
     }
 }

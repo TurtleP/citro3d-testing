@@ -12,15 +12,15 @@
             "_USE_MATH_DEFINES"
         ],
         "ctrIncludePaths": [
-            "/opt/devkitpro/libctru/include/**",
-            "/opt/devkitpro/portlibs/3ds/include/**"
+            "C:/msys64/opt/devkitpro/libctru/include/**",
+            "C:/msys64/opt/devkitpro/portlibs/3ds/include/**"
         ],
         "ctrDefines": [
             "__3DS__",
             "__OS__=\"Horizon\"",
             "__CONSOLE__=\"3DS\"",
         ],
-        "ctrCompilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++",
+        "ctrCompilerPath": "C:/msys64/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++",
     },
     "configurations": [
         {
