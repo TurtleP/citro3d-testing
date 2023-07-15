@@ -86,9 +86,9 @@ int main(int argc, char** argv)
         if (hidKeysDown() & KEY_START)
             break;
 
-        printf("\x1b[1;1HCPU:     %6.2f%%\x1b[K", C3D_GetProcessingTime() * 6.0f);
-        printf("\x1b[2;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime() * 6.0f);
-        printf("\x1b[3;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage() * 100.0f);
+        // printf("\x1b[1;1HCPU:     %6.2f%%\x1b[K", C3D_GetProcessingTime() * 6.0f);
+        // printf("\x1b[2;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime() * 6.0f);
+        // printf("\x1b[3;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage() * 100.0f);
 
         float dt = love::Timer::Instance().Step();
 
@@ -111,7 +111,11 @@ int main(int argc, char** argv)
 
         love::Graphics::Instance().Print(strings, font, textMatrix);
 
-        // love::Graphics::Instance().Pop();
+        love::Renderer::Instance().BindFramebuffer(1);
+        love::Renderer::Instance().Clear(clearColor);
+
+        love::Renderer::Instance().BindFramebuffer(2);
+        love::Renderer::Instance().Clear(clearColor);
 
         love::Renderer::Instance().Present();
 
