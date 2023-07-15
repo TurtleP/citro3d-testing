@@ -91,14 +91,14 @@ int main(int argc, char** argv)
         LOG("!");
     }
 
-    StrongReference<Rasterizer> rasterizer(instance.NewRasterizer(fontData.get(), fileSize, 30),
+    StrongReference<Rasterizer> rasterizer(instance.NewRasterizer(fontData.get(), fileSize, 22),
                                            Acquire::NORETAIN);
 
     auto* font      = new love::Font(rasterizer.Get());
     float textAngle = 0.0f;
 
     love::Font::ColoredString hello {};
-    hello.string = "Hello World!";
+    hello.string = "The quick brown fox jumps over the lazy dog.";
     hello.color  = Color(1, 1, 1, 1);
 
     love::Font::ColoredStrings strings = { hello };
@@ -141,11 +141,7 @@ int main(int argc, char** argv)
 
         // love::Graphics::Instance().Push();
 
-        love::Graphics::Instance().Translate(CENTER_POSITION.x, CENTER_POSITION.y);
-        love::Graphics::Instance().Rotate(textAngle);
-        love::Graphics::Instance().Translate(-CENTER_POSITION.x, -CENTER_POSITION.y);
-
-        love::Graphics::Instance().Print(strings, font, textMatrix);
+        love::Graphics::Instance().Printf(strings, font, 200, Font::ALIGN_RIGHT, textMatrix);
 
         love::Renderer::Instance().BindFramebuffer(1);
         love::Renderer::Instance().Clear(clearColor);

@@ -4,6 +4,8 @@
 #include "exception.hpp"
 #include "logfile.hpp"
 
+#include <math.h>
+
 using namespace love;
 
 Rasterizer::Rasterizer(CFG_Region region, float size) : glyphCount(-1), metrics {}
@@ -14,12 +16,12 @@ Rasterizer::Rasterizer(CFG_Region region, float size) : glyphCount(-1), metrics 
     TGLP_s* sheets = info->tglp;
 
     /* font is 30px tall */
-    this->scale = size / 30.0f;
+    this->scale = size / sheets->cellHeight;
 
     this->metrics.advance = sheets->maxCharWidth * this->scale;
     this->metrics.ascent  = info->ascent * this->scale;
     this->metrics.descent = (info->height - info->ascent) * this->scale;
-    this->metrics.height  = info->height * this->scale;
+    this->metrics.height  = sheets->cellHeight * this->scale;
 }
 
 Rasterizer::Rasterizer(const void* data, size_t dataSize, float size)
@@ -29,13 +31,13 @@ Rasterizer::Rasterizer(const void* data, size_t dataSize, float size)
     FINF_s* info   = fontGetInfo(this->face);
     TGLP_s* sheets = info->tglp;
 
-    /* font is 30px tall */
-    this->scale = size / 30.0f;
+    /* font is sheets->cellHeight px tall */
+    this->scale = std::floor(size * 1.0f + 0.5f) / sheets->cellHeight;
 
     this->metrics.advance = sheets->maxCharWidth * this->scale;
     this->metrics.ascent  = info->ascent * this->scale;
     this->metrics.descent = (info->height - info->ascent) * this->scale;
-    this->metrics.height  = info->height * this->scale;
+    this->metrics.height  = sheets->cellHeight * this->scale;
 }
 
 Rasterizer::~Rasterizer()
